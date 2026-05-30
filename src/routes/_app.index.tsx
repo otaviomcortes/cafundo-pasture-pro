@@ -102,7 +102,7 @@ function Dashboard() {
                 <TableHead>Matriz</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Sexo</TableHead>
-                <TableHead>Peso</TableHead>
+                <TableHead>Raça do Bezerro</TableHead>
                 <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -111,8 +111,8 @@ function Dashboard() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.brinco}</TableCell>
                   <TableCell className="text-muted-foreground">{p.data}</TableCell>
-                  <TableCell>{p.sexoBezerro}</TableCell>
-                  <TableCell>{p.peso}</TableCell>
+                  <TableCell>{p.sexo}</TableCell>
+                  <TableCell>{p.raca}</TableCell>
                   <TableCell className="text-right">
                     <Badge
                       variant="secondary"
