@@ -1,18 +1,35 @@
-import { mockMatrizes, type Matriz } from "./matriz";
+import { mockMatrizes, type Matriz, type MatrizInput } from "./matriz";
 import { mockPartos, type Parto } from "./parto";
-import { mockPrenhezes, type Prenhez } from "./prenhez";
+import { mockPrenhezes, type Prenhez, type PrenhezInput } from "./prenhez";
 import { mockDescartes, type Descarte } from "./descarte";
 import { mockEstacoesMonta, type EstacaoMonta } from "./estacaoMonta";
 import { mockProtocolosIatf, type ProtocoloIatf } from "./protocoloIatf";
+import {
+  mockProtocolosMatrizes,
+  type ProtocoloMatriz,
+  type ProtocoloMatrizInput,
+} from "./protocoloMatriz";
 
 /**
  * Serviços mockados.
  * Toda função é assíncrona para facilitar a futura troca por chamadas reais
  * (PostgreSQL / API) sem mudança de assinatura nos componentes consumidores.
+ *
+ * As assinaturas de CRUD (criar/atualizar/remover|inativar) já estão expostas
+ * como stubs — ainda não persistem alterações, apenas retornam dados coerentes
+ * para a futura integração.
  */
 
 function delay<T>(value: T, ms = 50): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function nextId(prefix: string): string {
+  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 // ---------- Matrizes ----------
@@ -28,6 +45,25 @@ export const matrizService = {
         (m) => m.status === "ativa" && m.situacaoReprodutiva === situacao,
       ),
     ),
+  criar: (input: MatrizInput) =>
+    delay<Matriz>({
+      ...input,
+      id: nextId("matriz"),
+      criadoEm: nowIso(),
+      atualizadoEm: nowIso(),
+    }),
+  atualizar: (id: string, patch: Partial<MatrizInput>) =>
+    delay<Matriz | undefined>(
+      (() => {
+        const m = mockMatrizes.find((x) => x.id === id);
+        return m ? { ...m, ...patch, atualizadoEm: nowIso() } : undefined;
+      })(),
+    ),
+  inativar: (id: string, novoStatus: Exclude<Matriz["status"], "ativa">) =>
+    delay<{ id: string; status: Matriz["status"] }>({
+      id,
+      status: novoStatus,
+    }),
 };
 
 // ---------- Partos ----------
@@ -46,6 +82,16 @@ export const partoService = {
         )
         .slice(0, qtd),
     ),
+  criar: (input: Omit<Parto, "id">) =>
+    delay<Parto>({ ...input, id: nextId("parto") }),
+  atualizar: (id: string, patch: Partial<Omit<Parto, "id">>) =>
+    delay<Parto | undefined>(
+      (() => {
+        const p = mockPartos.find((x) => x.id === id);
+        return p ? { ...p, ...patch } : undefined;
+      })(),
+    ),
+  remover: (id: string) => delay<{ id: string; removido: true }>({ id, removido: true }),
 };
 
 // ---------- Prenhezes ----------
@@ -56,7 +102,21 @@ export const prenhezService = {
   listarPorMatriz: (matrizId: string) =>
     delay<Prenhez[]>(mockPrenhezes.filter((p) => p.matrizId === matrizId)),
   listarAtivas: () =>
-    delay<Prenhez[]>(mockPrenhezes.filter((p) => p.status === "confirmada")),
+    delay<Prenhez[]>(mockPrenhezes.filter((p) => p.status === "ativa")),
+  criar: (input: PrenhezInput) =>
+    delay<Prenhez>({ ...input, id: nextId("prenhez") }),
+  atualizar: (id: string, patch: Partial<PrenhezInput>) =>
+    delay<Prenhez | undefined>(
+      (() => {
+        const p = mockPrenhezes.find((x) => x.id === id);
+        return p ? { ...p, ...patch } : undefined;
+      })(),
+    ),
+  encerrar: (id: string) =>
+    delay<{ id: string; status: Prenhez["status"] }>({
+      id,
+      status: "encerrada",
+    }),
 };
 
 // ---------- Descartes ----------
@@ -66,6 +126,16 @@ export const descarteService = {
     delay<Descarte | undefined>(mockDescartes.find((d) => d.id === id)),
   listarPorMatriz: (matrizId: string) =>
     delay<Descarte[]>(mockDescartes.filter((d) => d.matrizId === matrizId)),
+  criar: (input: Omit<Descarte, "id">) =>
+    delay<Descarte>({ ...input, id: nextId("descarte") }),
+  atualizar: (id: string, patch: Partial<Omit<Descarte, "id">>) =>
+    delay<Descarte | undefined>(
+      (() => {
+        const d = mockDescartes.find((x) => x.id === id);
+        return d ? { ...d, ...patch } : undefined;
+      })(),
+    ),
+  remover: (id: string) => delay<{ id: string; removido: true }>({ id, removido: true }),
 };
 
 // ---------- Estações de Monta ----------
@@ -81,6 +151,20 @@ export const estacaoMontaService = {
         (e) => e.status === "em_andamento" || e.status === "planejada",
       ),
     ),
+  criar: (input: Omit<EstacaoMonta, "id">) =>
+    delay<EstacaoMonta>({ ...input, id: nextId("estacao") }),
+  atualizar: (id: string, patch: Partial<Omit<EstacaoMonta, "id">>) =>
+    delay<EstacaoMonta | undefined>(
+      (() => {
+        const e = mockEstacoesMonta.find((x) => x.id === id);
+        return e ? { ...e, ...patch } : undefined;
+      })(),
+    ),
+  encerrar: (id: string) =>
+    delay<{ id: string; status: EstacaoMonta["status"] }>({
+      id,
+      status: "encerrada",
+    }),
 };
 
 // ---------- Protocolos IATF ----------
@@ -102,4 +186,51 @@ export const protocoloIatfService = {
           p.status === "aguardando_diagnostico",
       ),
     ),
+  criar: (input: Omit<ProtocoloIatf, "id">) =>
+    delay<ProtocoloIatf>({ ...input, id: nextId("protocolo") }),
+  atualizar: (id: string, patch: Partial<Omit<ProtocoloIatf, "id">>) =>
+    delay<ProtocoloIatf | undefined>(
+      (() => {
+        const p = mockProtocolosIatf.find((x) => x.id === id);
+        return p ? { ...p, ...patch } : undefined;
+      })(),
+    ),
+  finalizar: (id: string) =>
+    delay<{ id: string; status: ProtocoloIatf["status"] }>({
+      id,
+      status: "finalizado",
+    }),
+};
+
+// ---------- Protocolo x Matriz (participações) ----------
+export const protocoloMatrizService = {
+  listar: () => delay<ProtocoloMatriz[]>(mockProtocolosMatrizes),
+  buscarPorId: (id: string) =>
+    delay<ProtocoloMatriz | undefined>(
+      mockProtocolosMatrizes.find((p) => p.id === id),
+    ),
+  listarPorProtocolo: (protocoloId: string) =>
+    delay<ProtocoloMatriz[]>(
+      mockProtocolosMatrizes.filter((p) => p.protocoloId === protocoloId),
+    ),
+  listarPorMatriz: (matrizId: string) =>
+    delay<ProtocoloMatriz[]>(
+      mockProtocolosMatrizes.filter((p) => p.matrizId === matrizId),
+    ),
+  criar: (input: ProtocoloMatrizInput) =>
+    delay<ProtocoloMatriz>({
+      ...input,
+      id: nextId("protmat"),
+      criadoEm: nowIso(),
+      atualizadoEm: nowIso(),
+    }),
+  atualizar: (id: string, patch: Partial<ProtocoloMatrizInput>) =>
+    delay<ProtocoloMatriz | undefined>(
+      (() => {
+        const p = mockProtocolosMatrizes.find((x) => x.id === id);
+        return p ? { ...p, ...patch, atualizadoEm: nowIso() } : undefined;
+      })(),
+    ),
+  remover: (id: string) =>
+    delay<{ id: string; removido: true }>({ id, removido: true }),
 };

@@ -19,7 +19,8 @@ export interface Matriz {
   atualizadoEm: string;
 }
 
-const RACAS = ["Nelore", "Brahman", "Angus", "Cruza Nelore x Angus", "Tabapuã"];
+// Predominantemente Nelore; pequena variação para refletir cruzamentos pontuais.
+const RACAS = ["Nelore", "Nelore", "Nelore", "Nelore", "Cruza Nelore x Angus"];
 
 function isoDaysAgo(days: number): string {
   const d = new Date();
@@ -34,17 +35,17 @@ function gerarMatrizes(qtd: number): Matriz[] {
     const raca = RACAS[i % RACAS.length];
     const idadeDias = 365 * (3 + (i % 8)); // 3 a 10 anos
 
-    // Distribuição: 200 ativas, 10 descartadas, 5 vendidas, 2 mortas (referência)
+    // Distribuição total = 200: 185 ativas, 10 descartadas, 3 vendidas, 2 mortas.
     let status: MatrizStatus = "ativa";
-    if (i > 200 && i <= 210) status = "descartada";
-    else if (i > 210 && i <= 215) status = "vendida";
-    else if (i > 215) status = "morta";
+    if (i > 185 && i <= 195) status = "descartada";
+    else if (i > 195 && i <= 198) status = "vendida";
+    else if (i > 198) status = "morta";
 
-    // Para ativas: 120 prenhas, 60 vazias, 20 em protocolo
+    // Para ativas (1..185): 115 prenhas, 55 vazias, 15 em protocolo.
     let situacao: SituacaoReprodutiva = "apta";
     if (status === "ativa") {
-      if (i <= 120) situacao = "prenha";
-      else if (i <= 180) situacao = "vazia";
+      if (i <= 115) situacao = "prenha";
+      else if (i <= 170) situacao = "vazia";
       else situacao = "em_protocolo";
     } else {
       situacao = "vazia";
@@ -57,8 +58,9 @@ function gerarMatrizes(qtd: number): Matriz[] {
       dataNascimento: isoDaysAgo(idadeDias),
       status,
       situacaoReprodutiva: situacao,
-      quantidadePartos: Math.max(0, (i % 7)),
-      observacoes: i % 25 === 0 ? "Boa mãe, histórico produtivo consistente." : undefined,
+      quantidadePartos: Math.max(0, i % 7),
+      observacoes:
+        i % 25 === 0 ? "Boa mãe, histórico produtivo consistente." : undefined,
       criadoEm: isoDaysAgo(idadeDias),
       atualizadoEm: isoDaysAgo(i % 60),
     });
@@ -66,4 +68,6 @@ function gerarMatrizes(qtd: number): Matriz[] {
   return matrizes;
 }
 
-export const mockMatrizes: Matriz[] = gerarMatrizes(217);
+export const mockMatrizes: Matriz[] = gerarMatrizes(200);
+
+export type MatrizInput = Omit<Matriz, "id" | "criadoEm" | "atualizadoEm">;

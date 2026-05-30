@@ -4,4 +4,5 @@ export * from "./prenhez";
 export * from "./descarte";
 export * from "./estacaoMonta";
 export * from "./protocoloIatf";
+export * from "./protocoloMatriz";
 export * from "./services";
