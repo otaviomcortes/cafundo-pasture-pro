@@ -1,5 +1,5 @@
 export type OrigemPrenhez = "iatf" | "monta_natural";
-export type StatusPrenhez = "confirmada" | "perdida" | "finalizada";
+export type StatusPrenhez = "ativa" | "encerrada" | "perdida";
 
 export interface Prenhez {
   id: string;
@@ -24,12 +24,14 @@ function gerarPrenhezes(qtd: number): Prenhez[] {
       matrizId: `matriz-${i}`,
       origem: i % 3 === 0 ? "monta_natural" : "iatf",
       dataConfirmacao: isoDaysAgo(30 + (i % 180)),
-      status: "confirmada",
+      status: "ativa",
       observacoes: undefined,
     });
   }
   return prenhezes;
 }
 
-// 120 prenhezes ativas
-export const mockPrenhezes: Prenhez[] = gerarPrenhezes(120);
+// 115 prenhezes ativas (alinhado às matrizes prenhas ativas).
+export const mockPrenhezes: Prenhez[] = gerarPrenhezes(115);
+
+export type PrenhezInput = Omit<Prenhez, "id">;
