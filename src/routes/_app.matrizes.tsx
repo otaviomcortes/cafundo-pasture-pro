@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -41,10 +41,16 @@ import {
 } from "@/components/ui/dialog";
 import {
   matrizService,
-  type Matriz,
   type MatrizStatus,
   type SituacaoReprodutiva,
 } from "@/domain";
+import {
+  STATUS_LABEL,
+  SITUACAO_LABEL,
+  STATUS_BADGE,
+  SITUACAO_BADGE,
+  calcularIdade,
+} from "@/lib/matrizUi";
 
 export const Route = createFileRoute("/_app/matrizes")({
   head: () => ({
@@ -56,39 +62,8 @@ export const Route = createFileRoute("/_app/matrizes")({
 type StatusFiltro = MatrizStatus | "todos";
 type SituacaoFiltro = SituacaoReprodutiva | "todas";
 
-const STATUS_LABEL: Record<MatrizStatus, string> = {
-  ativa: "Ativa",
-  descartada: "Descartada",
-  vendida: "Vendida",
-  morta: "Morta",
-};
-
-const SITUACAO_LABEL: Record<SituacaoReprodutiva, string> = {
-  apta: "Apta",
-  prenha: "Prenha",
-  vazia: "Vazia",
-  em_protocolo: "Em protocolo",
-};
-
-const STATUS_BADGE: Record<MatrizStatus, string> = {
-  ativa: "bg-success/15 text-success border-success/30",
-  descartada: "bg-destructive/10 text-destructive border-destructive/30",
-  vendida: "bg-muted text-muted-foreground border-border",
-  morta: "bg-foreground/10 text-foreground border-border",
-};
-
-const SITUACAO_BADGE: Record<SituacaoReprodutiva, string> = {
-  apta: "bg-primary/10 text-primary border-primary/30",
-  prenha: "bg-success/15 text-success border-success/30",
-  vazia: "bg-warning/20 text-warning-foreground border-warning/40",
-  em_protocolo: "bg-accent/15 text-accent border-accent/30",
-};
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
-
 function MatrizesPage() {
+  const navigate = useNavigate();
   const { data: matrizes = [], isLoading } = useQuery({
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
@@ -98,7 +73,6 @@ function MatrizesPage() {
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
   const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoFiltro>("todas");
 
-  const [selecionada, setSelecionada] = useState<Matriz | null>(null);
   const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
   const [novaOpen, setNovaOpen] = useState(false);
 
@@ -150,7 +124,7 @@ function MatrizesPage() {
       title: "Em protocolo",
       value: resumo.emProtocolo,
       icon: Syringe,
-      tone: "accent",
+      tone: "info",
     },
     {
       title: "Descartadas",
@@ -164,7 +138,7 @@ function MatrizesPage() {
     primary: "bg-primary/10 text-primary",
     success: "bg-success/15 text-success",
     warning: "bg-warning/20 text-warning-foreground",
-    accent: "bg-accent/15 text-accent",
+    info: "bg-info/15 text-info",
     destructive: "bg-destructive/10 text-destructive",
   };
 
@@ -261,11 +235,10 @@ function MatrizesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Brinco</TableHead>
-                <TableHead>Raça</TableHead>
+                <TableHead>Idade</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Situação Reprodutiva</TableHead>
                 <TableHead className="text-center">Partos</TableHead>
-                <TableHead>Observações</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -273,7 +246,7 @@ function MatrizesPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Carregando matrizes...
@@ -282,7 +255,7 @@ function MatrizesPage() {
               ) : filtradas.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Nenhuma matriz encontrada com os filtros atuais.
@@ -295,7 +268,7 @@ function MatrizesPage() {
                       {m.numeroBrinco}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {m.raca}
+                      {calcularIdade(m.dataNascimento)}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -316,15 +289,17 @@ function MatrizesPage() {
                     <TableCell className="text-center">
                       {m.quantidadePartos}
                     </TableCell>
-                    <TableCell className="max-w-[260px] truncate text-sm text-muted-foreground">
-                      {m.observacoes ?? "—"}
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setSelecionada(m)}
+                          onClick={() =>
+                            navigate({
+                              to: "/matrizes/$id",
+                              params: { id: m.id },
+                            })
+                          }
                         >
                           <Eye className="h-4 w-4" />
                           <span className="sr-only">Visualizar</span>
@@ -351,92 +326,6 @@ function MatrizesPage() {
           )}
         </div>
       </Card>
-
-      {/* Modal Visualizar */}
-      <Dialog
-        open={selecionada !== null}
-        onOpenChange={(o) => !o && setSelecionada(null)}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl">
-              Matriz {selecionada?.numeroBrinco}
-            </DialogTitle>
-            <DialogDescription>
-              Dados completos da matriz selecionada.
-            </DialogDescription>
-          </DialogHeader>
-          {selecionada && (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <div>
-                <dt className="text-xs text-muted-foreground">Brinco</dt>
-                <dd className="font-medium">{selecionada.numeroBrinco}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Raça</dt>
-                <dd className="font-medium">{selecionada.raca}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Nascimento</dt>
-                <dd className="font-medium">
-                  {formatDate(selecionada.dataNascimento)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Partos</dt>
-                <dd className="font-medium">{selecionada.quantidadePartos}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Status</dt>
-                <dd>
-                  <Badge
-                    variant="outline"
-                    className={STATUS_BADGE[selecionada.status]}
-                  >
-                    {STATUS_LABEL[selecionada.status]}
-                  </Badge>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Situação</dt>
-                <dd>
-                  <Badge
-                    variant="outline"
-                    className={
-                      SITUACAO_BADGE[selecionada.situacaoReprodutiva]
-                    }
-                  >
-                    {SITUACAO_LABEL[selecionada.situacaoReprodutiva]}
-                  </Badge>
-                </dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="text-xs text-muted-foreground">Observações</dt>
-                <dd className="font-medium">
-                  {selecionada.observacoes ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Cadastrada em</dt>
-                <dd className="font-medium">
-                  {formatDate(selecionada.criadoEm)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Atualizada em</dt>
-                <dd className="font-medium">
-                  {formatDate(selecionada.atualizadoEm)}
-                </dd>
-              </div>
-            </dl>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelecionada(null)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Placeholder edição */}
       <Dialog
