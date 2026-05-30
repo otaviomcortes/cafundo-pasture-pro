@@ -1,13 +1,477 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { Beef } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Beef,
+  HeartPulse,
+  HeartCrack,
+  Syringe,
+  PackageMinus,
+  Plus,
+  Search,
+  Eye,
+  Pencil,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  matrizService,
+  type Matriz,
+  type MatrizStatus,
+  type SituacaoReprodutiva,
+} from "@/domain";
 
 export const Route = createFileRoute("/_app/matrizes")({
-  component: () => (
-    <PlaceholderPage
-      title="Matrizes"
-      icon={Beef}
-      description="Cadastro completo das matrizes do rebanho, com histórico reprodutivo, sanitário e zootécnico."
-    />
-  ),
+  head: () => ({
+    meta: [{ title: "Matrizes — Cafundó" }],
+  }),
+  component: MatrizesPage,
 });
+
+type StatusFiltro = MatrizStatus | "todos";
+type SituacaoFiltro = SituacaoReprodutiva | "todas";
+
+const STATUS_LABEL: Record<MatrizStatus, string> = {
+  ativa: "Ativa",
+  descartada: "Descartada",
+  vendida: "Vendida",
+  morta: "Morta",
+};
+
+const SITUACAO_LABEL: Record<SituacaoReprodutiva, string> = {
+  apta: "Apta",
+  prenha: "Prenha",
+  vazia: "Vazia",
+  em_protocolo: "Em protocolo",
+};
+
+const STATUS_BADGE: Record<MatrizStatus, string> = {
+  ativa: "bg-success/15 text-success border-success/30",
+  descartada: "bg-destructive/10 text-destructive border-destructive/30",
+  vendida: "bg-muted text-muted-foreground border-border",
+  morta: "bg-foreground/10 text-foreground border-border",
+};
+
+const SITUACAO_BADGE: Record<SituacaoReprodutiva, string> = {
+  apta: "bg-primary/10 text-primary border-primary/30",
+  prenha: "bg-success/15 text-success border-success/30",
+  vazia: "bg-warning/20 text-warning-foreground border-warning/40",
+  em_protocolo: "bg-accent/15 text-accent border-accent/30",
+};
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
+
+function MatrizesPage() {
+  const { data: matrizes = [], isLoading } = useQuery({
+    queryKey: ["matrizes"],
+    queryFn: () => matrizService.listar(),
+  });
+
+  const [busca, setBusca] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
+  const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoFiltro>("todas");
+
+  const [selecionada, setSelecionada] = useState<Matriz | null>(null);
+  const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
+  const [novaOpen, setNovaOpen] = useState(false);
+
+  const resumo = useMemo(() => {
+    const total = matrizes.length;
+    const ativas = matrizes.filter((m) => m.status === "ativa");
+    return {
+      total,
+      ativas: ativas.length,
+      prenhas: ativas.filter((m) => m.situacaoReprodutiva === "prenha").length,
+      vazias: ativas.filter((m) => m.situacaoReprodutiva === "vazia").length,
+      emProtocolo: ativas.filter(
+        (m) => m.situacaoReprodutiva === "em_protocolo",
+      ).length,
+      descartadas: matrizes.filter((m) => m.status === "descartada").length,
+    };
+  }, [matrizes]);
+
+  const filtradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return matrizes.filter((m) => {
+      if (termo && !m.numeroBrinco.toLowerCase().includes(termo)) return false;
+      if (statusFiltro !== "todos" && m.status !== statusFiltro) return false;
+      if (
+        situacaoFiltro !== "todas" &&
+        m.situacaoReprodutiva !== situacaoFiltro
+      )
+        return false;
+      return true;
+    });
+  }, [matrizes, busca, statusFiltro, situacaoFiltro]);
+
+  const cards = [
+    { title: "Total", value: resumo.total, icon: Beef, tone: "primary" },
+    { title: "Ativas", value: resumo.ativas, icon: Beef, tone: "success" },
+    {
+      title: "Prenhas",
+      value: resumo.prenhas,
+      icon: HeartPulse,
+      tone: "success",
+    },
+    {
+      title: "Vazias",
+      value: resumo.vazias,
+      icon: HeartCrack,
+      tone: "warning",
+    },
+    {
+      title: "Em protocolo",
+      value: resumo.emProtocolo,
+      icon: Syringe,
+      tone: "accent",
+    },
+    {
+      title: "Descartadas",
+      value: resumo.descartadas,
+      icon: PackageMinus,
+      tone: "destructive",
+    },
+  ] as const;
+
+  const toneClasses: Record<string, string> = {
+    primary: "bg-primary/10 text-primary",
+    success: "bg-success/15 text-success",
+    warning: "bg-warning/20 text-warning-foreground",
+    accent: "bg-accent/15 text-accent",
+    destructive: "bg-destructive/10 text-destructive",
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Heading */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">Rebanho reprodutivo</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
+            Matrizes
+          </h1>
+        </div>
+        <Button onClick={() => setNovaOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Nova Matriz
+        </Button>
+      </div>
+
+      {/* Resumo */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {cards.map((c) => (
+          <Card
+            key={c.title}
+            className="p-4 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]"
+          >
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClasses[c.tone]}`}
+            >
+              <c.icon className="h-4 w-4" />
+            </div>
+            <p className="mt-3 text-xs font-medium text-muted-foreground">
+              {c.title}
+            </p>
+            <p className="font-display text-2xl font-bold tracking-tight">
+              {c.value.toLocaleString("pt-BR")}
+            </p>
+          </Card>
+        ))}
+      </div>
+
+      {/* Filtros + tabela */}
+      <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
+        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por brinco..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={statusFiltro}
+            onValueChange={(v) => setStatusFiltro(v as StatusFiltro)}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os status</SelectItem>
+              {(Object.keys(STATUS_LABEL) as MatrizStatus[]).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABEL[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={situacaoFiltro}
+            onValueChange={(v) => setSituacaoFiltro(v as SituacaoFiltro)}
+          >
+            <SelectTrigger className="w-full sm:w-52">
+              <SelectValue placeholder="Situação reprodutiva" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as situações</SelectItem>
+              {(Object.keys(SITUACAO_LABEL) as SituacaoReprodutiva[]).map(
+                (s) => (
+                  <SelectItem key={s} value={s}>
+                    {SITUACAO_LABEL[s]}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+          <div className="ml-auto text-xs text-muted-foreground">
+            {filtradas.length} de {matrizes.length}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Brinco</TableHead>
+                <TableHead>Raça</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Situação Reprodutiva</TableHead>
+                <TableHead className="text-center">Partos</TableHead>
+                <TableHead>Observações</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    Carregando matrizes...
+                  </TableCell>
+                </TableRow>
+              ) : filtradas.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    Nenhuma matriz encontrada com os filtros atuais.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtradas.slice(0, 100).map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-medium">
+                      {m.numeroBrinco}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {m.raca}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={STATUS_BADGE[m.status]}
+                      >
+                        {STATUS_LABEL[m.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={SITUACAO_BADGE[m.situacaoReprodutiva]}
+                      >
+                        {SITUACAO_LABEL[m.situacaoReprodutiva]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {m.quantidadePartos}
+                    </TableCell>
+                    <TableCell className="max-w-[260px] truncate text-sm text-muted-foreground">
+                      {m.observacoes ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setSelecionada(m)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">Visualizar</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditPlaceholderOpen(true)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          {filtradas.length > 100 && (
+            <div className="border-t border-border bg-secondary/30 px-5 py-3 text-center text-xs text-muted-foreground">
+              Exibindo as primeiras 100 matrizes. Use os filtros para refinar.
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Modal Visualizar */}
+      <Dialog
+        open={selecionada !== null}
+        onOpenChange={(o) => !o && setSelecionada(null)}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">
+              Matriz {selecionada?.numeroBrinco}
+            </DialogTitle>
+            <DialogDescription>
+              Dados completos da matriz selecionada.
+            </DialogDescription>
+          </DialogHeader>
+          {selecionada && (
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Brinco</dt>
+                <dd className="font-medium">{selecionada.numeroBrinco}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Raça</dt>
+                <dd className="font-medium">{selecionada.raca}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Nascimento</dt>
+                <dd className="font-medium">
+                  {formatDate(selecionada.dataNascimento)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Partos</dt>
+                <dd className="font-medium">{selecionada.quantidadePartos}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Status</dt>
+                <dd>
+                  <Badge
+                    variant="outline"
+                    className={STATUS_BADGE[selecionada.status]}
+                  >
+                    {STATUS_LABEL[selecionada.status]}
+                  </Badge>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Situação</dt>
+                <dd>
+                  <Badge
+                    variant="outline"
+                    className={
+                      SITUACAO_BADGE[selecionada.situacaoReprodutiva]
+                    }
+                  >
+                    {SITUACAO_LABEL[selecionada.situacaoReprodutiva]}
+                  </Badge>
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs text-muted-foreground">Observações</dt>
+                <dd className="font-medium">
+                  {selecionada.observacoes ?? "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Cadastrada em</dt>
+                <dd className="font-medium">
+                  {formatDate(selecionada.criadoEm)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Atualizada em</dt>
+                <dd className="font-medium">
+                  {formatDate(selecionada.atualizadoEm)}
+                </dd>
+              </div>
+            </dl>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelecionada(null)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Placeholder edição */}
+      <Dialog
+        open={editPlaceholderOpen}
+        onOpenChange={setEditPlaceholderOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar matriz</DialogTitle>
+            <DialogDescription>
+              Formulário de edição será implementado na próxima etapa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setEditPlaceholderOpen(false)}>
+              Entendi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Placeholder Nova Matriz */}
+      <Dialog open={novaOpen} onOpenChange={setNovaOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova matriz</DialogTitle>
+            <DialogDescription>
+              Formulário de cadastro será implementado na próxima etapa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setNovaOpen(false)}>Entendi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
