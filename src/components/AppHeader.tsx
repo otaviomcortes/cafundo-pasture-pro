@@ -38,7 +38,7 @@ export function AppHeader() {
             <Button variant="ghost" className="gap-2 px-2">
               <UserCircle2 className="h-7 w-7 text-primary" />
               <div className="hidden text-left leading-tight md:block">
-                <p className="text-sm font-semibold">João Pereira</p>
+                <p className="text-sm font-semibold">Usuário Cafundó</p>
                 <p className="text-xs text-muted-foreground">Gerente</p>
               </div>
             </Button>

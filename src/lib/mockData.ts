@@ -1,18 +1,18 @@
 export const dashboardStats = {
-  matrizesAtivas: 842,
-  matrizesPrenhas: 514,
-  matrizesVazias: 218,
-  matrizesEmProtocolo: 110,
-  partosNoAno: 387,
-  descartesNoAno: 46,
+  matrizesAtivas: 200,
+  matrizesPrenhas: 120,
+  matrizesVazias: 60,
+  matrizesEmProtocolo: 20,
+  partosNoAno: 190,
+  descartesNoAno: 10,
 };
 
 export const ultimosPartos = [
-  { id: 1, brinco: "A-1284", data: "28/05/2026", sexoBezerro: "Macho", peso: "34 kg", status: "Saudável" },
-  { id: 2, brinco: "B-0457", data: "27/05/2026", sexoBezerro: "Fêmea", peso: "31 kg", status: "Saudável" },
-  { id: 3, brinco: "A-0912", data: "26/05/2026", sexoBezerro: "Macho", peso: "36 kg", status: "Assistido" },
-  { id: 4, brinco: "C-2201", data: "25/05/2026", sexoBezerro: "Fêmea", peso: "29 kg", status: "Saudável" },
-  { id: 5, brinco: "B-1130", data: "24/05/2026", sexoBezerro: "Macho", peso: "33 kg", status: "Saudável" },
+  { id: 1, brinco: "101", data: "28/05/2026", sexo: "Macho", raca: "Nelore", status: "Saudável" },
+  { id: 2, brinco: "132", data: "27/05/2026", sexo: "Fêmea", raca: "Nelore", status: "Saudável" },
+  { id: 3, brinco: "208", data: "26/05/2026", sexo: "Macho", raca: "Cruza", status: "Assistido" },
+  { id: 4, brinco: "245", data: "25/05/2026", sexo: "Fêmea", raca: "Nelore", status: "Saudável" },
+  { id: 5, brinco: "301", data: "24/05/2026", sexo: "Macho", raca: "Nelore", status: "Saudável" },
 ];
 
 export const protocolosAtivos = [

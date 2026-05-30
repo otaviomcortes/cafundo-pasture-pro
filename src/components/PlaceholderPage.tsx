@@ -29,7 +29,7 @@ export function PlaceholderPage({ title, description, icon: Icon }: PlaceholderP
           <Construction className="h-3.5 w-3.5" />
           Estrutura pronta para integração com PostgreSQL
         </div>
-        <Button variant="outline" size="sm">Solicitar prioridade</Button>
+        
       </Card>
     </div>
   );
