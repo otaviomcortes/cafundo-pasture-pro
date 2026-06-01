@@ -112,20 +112,21 @@ export const prenhezService = {
     delay<Prenhez[]>(mockPrenhezes.filter((p) => p.matrizId === matrizId)),
   listarAtivas: () =>
     delay<Prenhez[]>(mockPrenhezes.filter((p) => p.status === "ativa")),
-  criar: (input: PrenhezInput) =>
-    delay<Prenhez>({ ...input, id: nextId("prenhez") }),
-  atualizar: (id: string, patch: Partial<PrenhezInput>) =>
-    delay<Prenhez | undefined>(
-      (() => {
-        const p = mockPrenhezes.find((x) => x.id === id);
-        return p ? { ...p, ...patch } : undefined;
-      })(),
-    ),
-  encerrar: (id: string) =>
-    delay<{ id: string; status: Prenhez["status"] }>({
-      id,
-      status: "encerrada",
-    }),
+  criar: (input: PrenhezInput) => {
+    const novo: Prenhez = { ...input, id: nextId("prenhez") };
+    mockPrenhezes.push(novo);
+    return delay<Prenhez>(novo);
+  },
+  atualizar: (id: string, patch: Partial<PrenhezInput>) => {
+    const p = mockPrenhezes.find((x) => x.id === id);
+    if (p) Object.assign(p, patch);
+    return delay<Prenhez | undefined>(p);
+  },
+  encerrar: (id: string) => {
+    const p = mockPrenhezes.find((x) => x.id === id);
+    if (p) p.status = "encerrada";
+    return delay<{ id: string; status: Prenhez["status"] }>({ id, status: "encerrada" });
+  },
 };
 
 // ---------- Descartes ----------
