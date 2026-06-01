@@ -362,42 +362,44 @@ function MatrizDetalhePage() {
         </Table>
       </SecaoHistorico>
 
-      {/* Descartes */}
-      <SecaoHistorico
-        titulo="Histórico de Descartes"
-        icone={<PackageMinus className="h-5 w-5" />}
-        total={descartes.length}
-        vazio="Nenhum descarte registrado para esta matriz."
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Motivo</TableHead>
-              <TableHead>Peso (kg)</TableHead>
-              <TableHead>Destino</TableHead>
-              <TableHead>Observações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {descartes.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell>{formatDate(d.dataDescarte)}</TableCell>
-                <TableCell>
-                  {MOTIVO_DESCARTE_LABEL[d.motivo] ?? d.motivo}
-                </TableCell>
-                <TableCell>{d.peso}</TableCell>
-                <TableCell>
-                  {DESTINO_DESCARTE_LABEL[d.destino] ?? d.destino}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {d.observacoes ?? "—"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </SecaoHistorico>
+      {/* Descarte */}
+      <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
+        <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-5 py-4">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <PackageMinus className="h-5 w-5" />
+          </span>
+          <h2 className="font-display text-lg font-semibold">Informações de Descarte</h2>
+        </div>
+        {descartes.length === 0 ? (
+          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+            Matriz sem registro de descarte.
+          </div>
+        ) : (
+          <div className="p-5">
+            {(() => {
+              const d = descartes[0];
+              return (
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+                  <Info label="Data do descarte" value={formatDate(d.dataDescarte)} />
+                  <Info
+                    label="Motivo"
+                    value={MOTIVO_DESCARTE_LABEL[d.motivo] ?? d.motivo}
+                  />
+                  <Info label="Peso (kg)" value={d.peso} />
+                  <Info
+                    label="Destino"
+                    value={DESTINO_DESCARTE_LABEL[d.destino] ?? d.destino}
+                  />
+                  <div className="col-span-2 md:col-span-3">
+                    <dt className="text-xs text-muted-foreground">Observações</dt>
+                    <dd className="font-medium">{d.observacoes ?? "—"}</dd>
+                  </div>
+                </dl>
+              );
+            })()}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
