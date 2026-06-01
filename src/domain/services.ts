@@ -45,25 +45,29 @@ export const matrizService = {
         (m) => m.status === "ativa" && m.situacaoReprodutiva === situacao,
       ),
     ),
-  criar: (input: MatrizInput) =>
-    delay<Matriz>({
+  criar: (input: MatrizInput) => {
+    const novo: Matriz = {
       ...input,
       id: nextId("matriz"),
       criadoEm: nowIso(),
       atualizadoEm: nowIso(),
-    }),
-  atualizar: (id: string, patch: Partial<MatrizInput>) =>
-    delay<Matriz | undefined>(
-      (() => {
-        const m = mockMatrizes.find((x) => x.id === id);
-        return m ? { ...m, ...patch, atualizadoEm: nowIso() } : undefined;
-      })(),
-    ),
-  inativar: (id: string, novoStatus: Exclude<Matriz["status"], "ativa">) =>
-    delay<{ id: string; status: Matriz["status"] }>({
-      id,
-      status: novoStatus,
-    }),
+    };
+    mockMatrizes.push(novo);
+    return delay<Matriz>(novo);
+  },
+  atualizar: (id: string, patch: Partial<MatrizInput>) => {
+    const m = mockMatrizes.find((x) => x.id === id);
+    if (m) Object.assign(m, patch, { atualizadoEm: nowIso() });
+    return delay<Matriz | undefined>(m);
+  },
+  inativar: (id: string, novoStatus: Exclude<Matriz["status"], "ativa">) => {
+    const m = mockMatrizes.find((x) => x.id === id);
+    if (m) {
+      m.status = novoStatus;
+      m.atualizadoEm = nowIso();
+    }
+    return delay<{ id: string; status: Matriz["status"] }>({ id, status: novoStatus });
+  },
 };
 
 // ---------- Partos ----------
