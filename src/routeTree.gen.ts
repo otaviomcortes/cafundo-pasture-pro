@@ -21,6 +21,7 @@ import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
+import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -81,6 +82,11 @@ const AppMatrizesIdRoute = AppMatrizesIdRouteImport.update({
   path: '/matrizes/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
+  id: '/partos/$id/',
+  path: '/partos/$id/',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
+  '/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
+  '/partos/$id': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
+  '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes/'
     | '/partos/'
+    | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes'
     | '/partos'
+    | '/partos/$id'
   id:
     | '__root__'
     | '/_app'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_app/partos/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
+    | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/partos/$id/': {
+      id: '/_app/partos/$id/'
+      path: '/partos/$id'
+      fullPath: '/partos/$id/'
+      preLoaderRoute: typeof AppPartosIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -271,6 +290,7 @@ interface AppRouteChildren {
   AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
+  AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -284,6 +304,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPartosNovoRoute: AppPartosNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
+  AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
