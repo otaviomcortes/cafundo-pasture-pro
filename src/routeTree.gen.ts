@@ -15,7 +15,6 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProtocolosRouteImport } from './routes/_app.protocolos'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
-import { Route as AppPartosRouteImport } from './routes/_app.partos'
 import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
@@ -50,11 +49,6 @@ const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
   path: '/prenhezes',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPartosRoute = AppPartosRouteImport.update({
-  id: '/partos',
-  path: '/partos',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppEstacoesRoute = AppEstacoesRouteImport.update({
   id: '/estacoes',
   path: '/estacoes',
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/descartes': typeof AppDescartesRoute
   '/_app/estacoes': typeof AppEstacoesRoute
-  '/_app/partos': typeof AppPartosRoute
   '/_app/prenhezes': typeof AppPrenhezesRoute
   '/_app/protocolos': typeof AppProtocolosRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
@@ -121,7 +112,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
@@ -132,7 +122,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
@@ -145,7 +134,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/_app/descartes'
     | '/_app/estacoes'
-    | '/_app/partos'
     | '/_app/prenhezes'
     | '/_app/protocolos'
     | '/_app/relatorios'
@@ -203,13 +191,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPrenhezesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/partos': {
-      id: '/_app/partos'
-      path: '/partos'
-      fullPath: '/partos'
-      preLoaderRoute: typeof AppPartosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/estacoes': {
       id: '/_app/estacoes'
       path: '/estacoes'
@@ -244,7 +225,6 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDescartesRoute: typeof AppDescartesRoute
   AppEstacoesRoute: typeof AppEstacoesRoute
-  AppPartosRoute: typeof AppPartosRoute
   AppPrenhezesRoute: typeof AppPrenhezesRoute
   AppProtocolosRoute: typeof AppProtocolosRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
@@ -256,7 +236,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDescartesRoute: AppDescartesRoute,
   AppEstacoesRoute: AppEstacoesRoute,
-  AppPartosRoute: AppPartosRoute,
   AppPrenhezesRoute: AppPrenhezesRoute,
   AppProtocolosRoute: AppProtocolosRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
@@ -274,3 +253,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
