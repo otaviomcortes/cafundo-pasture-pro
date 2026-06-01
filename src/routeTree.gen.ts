@@ -16,9 +16,9 @@ import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProtocolosRouteImport } from './routes/_app.protocolos'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
 import { Route as AppPartosRouteImport } from './routes/_app.partos'
-import { Route as AppMatrizesRouteImport } from './routes/_app.matrizes'
 import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
+import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -55,11 +55,6 @@ const AppPartosRoute = AppPartosRouteImport.update({
   path: '/partos',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMatrizesRoute = AppMatrizesRouteImport.update({
-  id: '/matrizes',
-  path: '/matrizes',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppEstacoesRoute = AppEstacoesRouteImport.update({
   id: '/estacoes',
   path: '/estacoes',
@@ -70,10 +65,15 @@ const AppDescartesRoute = AppDescartesRouteImport.update({
   path: '/descartes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
+  id: '/matrizes/',
+  path: '/matrizes/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMatrizesIdRoute = AppMatrizesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppMatrizesRoute,
+  id: '/matrizes/$id',
+  path: '/matrizes/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -81,24 +81,24 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/matrizes': typeof AppMatrizesRouteWithChildren
   '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/matrizes/': typeof AppMatrizesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/matrizes': typeof AppMatrizesRouteWithChildren
   '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/matrizes': typeof AppMatrizesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,13 +106,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/descartes': typeof AppDescartesRoute
   '/_app/estacoes': typeof AppEstacoesRoute
-  '/_app/matrizes': typeof AppMatrizesRouteWithChildren
   '/_app/partos': typeof AppPartosRoute
   '/_app/prenhezes': typeof AppPrenhezesRoute
   '/_app/protocolos': typeof AppProtocolosRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
+  '/_app/matrizes/': typeof AppMatrizesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,37 +121,37 @@ export interface FileRouteTypes {
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/matrizes'
     | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
     | '/matrizes/$id'
+    | '/matrizes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/matrizes'
     | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
     | '/'
     | '/matrizes/$id'
+    | '/matrizes'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/descartes'
     | '/_app/estacoes'
-    | '/_app/matrizes'
     | '/_app/partos'
     | '/_app/prenhezes'
     | '/_app/protocolos'
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/matrizes/$id'
+    | '/_app/matrizes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,13 +210,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/matrizes': {
-      id: '/_app/matrizes'
-      path: '/matrizes'
-      fullPath: '/matrizes'
-      preLoaderRoute: typeof AppMatrizesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/estacoes': {
       id: '/_app/estacoes'
       path: '/estacoes'
@@ -231,48 +224,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDescartesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/matrizes/': {
+      id: '/_app/matrizes/'
+      path: '/matrizes'
+      fullPath: '/matrizes/'
+      preLoaderRoute: typeof AppMatrizesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/matrizes/$id': {
       id: '/_app/matrizes/$id'
-      path: '/$id'
+      path: '/matrizes/$id'
       fullPath: '/matrizes/$id'
       preLoaderRoute: typeof AppMatrizesIdRouteImport
-      parentRoute: typeof AppMatrizesRoute
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface AppMatrizesRouteChildren {
-  AppMatrizesIdRoute: typeof AppMatrizesIdRoute
-}
-
-const AppMatrizesRouteChildren: AppMatrizesRouteChildren = {
-  AppMatrizesIdRoute: AppMatrizesIdRoute,
-}
-
-const AppMatrizesRouteWithChildren = AppMatrizesRoute._addFileChildren(
-  AppMatrizesRouteChildren,
-)
-
 interface AppRouteChildren {
   AppDescartesRoute: typeof AppDescartesRoute
   AppEstacoesRoute: typeof AppEstacoesRoute
-  AppMatrizesRoute: typeof AppMatrizesRouteWithChildren
   AppPartosRoute: typeof AppPartosRoute
   AppPrenhezesRoute: typeof AppPrenhezesRoute
   AppProtocolosRoute: typeof AppProtocolosRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppMatrizesIdRoute: typeof AppMatrizesIdRoute
+  AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDescartesRoute: AppDescartesRoute,
   AppEstacoesRoute: AppEstacoesRoute,
-  AppMatrizesRoute: AppMatrizesRouteWithChildren,
   AppPartosRoute: AppPartosRoute,
   AppPrenhezesRoute: AppPrenhezesRoute,
   AppProtocolosRoute: AppProtocolosRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
+  AppMatrizesIdRoute: AppMatrizesIdRoute,
+  AppMatrizesIndexRoute: AppMatrizesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -284,3 +274,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

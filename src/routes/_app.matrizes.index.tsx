@@ -52,7 +52,7 @@ import {
   calcularIdade,
 } from "@/lib/matrizUi";
 
-export const Route = createFileRoute("/_app/matrizes")({
+export const Route = createFileRoute("/_app/matrizes/")({
   head: () => ({
     meta: [{ title: "Matrizes — Cafundó" }],
   }),
