@@ -22,6 +22,7 @@ import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.ind
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
+import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -87,6 +88,11 @@ const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
   path: '/partos/$id/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
+  id: '/partos/$id/editar',
+  path: '/partos/$id/editar',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
+  '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
+  '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesById {
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
+  '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes/'
     | '/partos/'
+    | '/partos/$id/editar'
     | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes'
     | '/partos'
+    | '/partos/$id/editar'
     | '/partos/$id'
   id:
     | '__root__'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_app/partos/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
+    | '/_app/partos/$id/editar'
     | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -276,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/partos/$id/editar': {
+      id: '/_app/partos/$id/editar'
+      path: '/partos/$id/editar'
+      fullPath: '/partos/$id/editar'
+      preLoaderRoute: typeof AppPartosIdEditarRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -290,6 +309,7 @@ interface AppRouteChildren {
   AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
+  AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
   AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
 
@@ -304,6 +324,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPartosNovoRoute: AppPartosNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
+  AppPartosIdEditarRoute: AppPartosIdEditarRoute,
   AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }
 
