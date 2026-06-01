@@ -19,6 +19,7 @@ import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
+import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -70,6 +71,11 @@ const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   path: '/matrizes/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPartosNovoRoute = AppPartosNovoRouteImport.update({
+  id: '/partos/novo',
+  path: '/partos/novo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMatrizesIdRoute = AppMatrizesIdRouteImport.update({
   id: '/matrizes/$id',
   path: '/matrizes/$id',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
 }
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
 }
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
+  '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
 }
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/protocolos'
     | '/relatorios'
     | '/matrizes/$id'
+    | '/partos/novo'
     | '/matrizes/'
     | '/partos/'
   fileRoutesByTo: FileRoutesByTo
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/'
     | '/matrizes/$id'
+    | '/partos/novo'
     | '/matrizes'
     | '/partos'
   id:
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/matrizes/$id'
+    | '/_app/partos/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
   fileRoutesById: FileRoutesById
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/partos/novo': {
+      id: '/_app/partos/novo'
+      path: '/partos/novo'
+      fullPath: '/partos/novo'
+      preLoaderRoute: typeof AppPartosNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/matrizes/$id': {
       id: '/_app/matrizes/$id'
       path: '/matrizes/$id'
@@ -249,6 +268,7 @@ interface AppRouteChildren {
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
+  AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
 }
@@ -261,6 +281,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
+  AppPartosNovoRoute: AppPartosNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
 }
@@ -274,3 +295,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
