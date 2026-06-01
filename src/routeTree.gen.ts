@@ -15,11 +15,14 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProtocolosRouteImport } from './routes/_app.protocolos'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
-import { Route as AppPartosRouteImport } from './routes/_app.partos'
 import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
+import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
+import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
+import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
+import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -50,11 +53,6 @@ const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
   path: '/prenhezes',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPartosRoute = AppPartosRouteImport.update({
-  id: '/partos',
-  path: '/partos',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppEstacoesRoute = AppEstacoesRouteImport.update({
   id: '/estacoes',
   path: '/estacoes',
@@ -65,14 +63,34 @@ const AppDescartesRoute = AppDescartesRouteImport.update({
   path: '/descartes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
+  id: '/partos/',
+  path: '/partos/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   id: '/matrizes/',
   path: '/matrizes/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPartosNovoRoute = AppPartosNovoRouteImport.update({
+  id: '/partos/novo',
+  path: '/partos/novo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMatrizesIdRoute = AppMatrizesIdRouteImport.update({
   id: '/matrizes/$id',
   path: '/matrizes/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
+  id: '/partos/$id/',
+  path: '/partos/$id/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
+  id: '/partos/$id/editar',
+  path: '/partos/$id/editar',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -81,24 +99,30 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
+  '/partos/': typeof AppPartosIndexRoute
+  '/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
   '/estacoes': typeof AppEstacoesRoute
-  '/partos': typeof AppPartosRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
+  '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
+  '/partos': typeof AppPartosIndexRoute
+  '/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/partos/$id': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,13 +130,16 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/descartes': typeof AppDescartesRoute
   '/_app/estacoes': typeof AppEstacoesRoute
-  '/_app/partos': typeof AppPartosRoute
   '/_app/prenhezes': typeof AppPrenhezesRoute
   '/_app/protocolos': typeof AppProtocolosRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
+  '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
+  '/_app/partos/': typeof AppPartosIndexRoute
+  '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,37 +148,46 @@ export interface FileRouteTypes {
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
     | '/matrizes/$id'
+    | '/partos/novo'
     | '/matrizes/'
+    | '/partos/'
+    | '/partos/$id/editar'
+    | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/descartes'
     | '/estacoes'
-    | '/partos'
     | '/prenhezes'
     | '/protocolos'
     | '/relatorios'
     | '/'
     | '/matrizes/$id'
+    | '/partos/novo'
     | '/matrizes'
+    | '/partos'
+    | '/partos/$id/editar'
+    | '/partos/$id'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/descartes'
     | '/_app/estacoes'
-    | '/_app/partos'
     | '/_app/prenhezes'
     | '/_app/protocolos'
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/matrizes/$id'
+    | '/_app/partos/novo'
     | '/_app/matrizes/'
+    | '/_app/partos/'
+    | '/_app/partos/$id/editar'
+    | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,13 +239,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPrenhezesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/partos': {
-      id: '/_app/partos'
-      path: '/partos'
-      fullPath: '/partos'
-      preLoaderRoute: typeof AppPartosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/estacoes': {
       id: '/_app/estacoes'
       path: '/estacoes'
@@ -224,11 +253,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDescartesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/partos/': {
+      id: '/_app/partos/'
+      path: '/partos'
+      fullPath: '/partos/'
+      preLoaderRoute: typeof AppPartosIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/matrizes/': {
       id: '/_app/matrizes/'
       path: '/matrizes'
       fullPath: '/matrizes/'
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/partos/novo': {
+      id: '/_app/partos/novo'
+      path: '/partos/novo'
+      fullPath: '/partos/novo'
+      preLoaderRoute: typeof AppPartosNovoRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/matrizes/$id': {
@@ -238,31 +281,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/partos/$id/': {
+      id: '/_app/partos/$id/'
+      path: '/partos/$id'
+      fullPath: '/partos/$id/'
+      preLoaderRoute: typeof AppPartosIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/partos/$id/editar': {
+      id: '/_app/partos/$id/editar'
+      path: '/partos/$id/editar'
+      fullPath: '/partos/$id/editar'
+      preLoaderRoute: typeof AppPartosIdEditarRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppDescartesRoute: typeof AppDescartesRoute
   AppEstacoesRoute: typeof AppEstacoesRoute
-  AppPartosRoute: typeof AppPartosRoute
   AppPrenhezesRoute: typeof AppPrenhezesRoute
   AppProtocolosRoute: typeof AppProtocolosRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
+  AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
+  AppPartosIndexRoute: typeof AppPartosIndexRoute
+  AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
+  AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDescartesRoute: AppDescartesRoute,
   AppEstacoesRoute: AppEstacoesRoute,
-  AppPartosRoute: AppPartosRoute,
   AppPrenhezesRoute: AppPrenhezesRoute,
   AppProtocolosRoute: AppProtocolosRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
+  AppPartosNovoRoute: AppPartosNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
+  AppPartosIndexRoute: AppPartosIndexRoute,
+  AppPartosIdEditarRoute: AppPartosIdEditarRoute,
+  AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -45,25 +45,29 @@ export const matrizService = {
         (m) => m.status === "ativa" && m.situacaoReprodutiva === situacao,
       ),
     ),
-  criar: (input: MatrizInput) =>
-    delay<Matriz>({
+  criar: (input: MatrizInput) => {
+    const novo: Matriz = {
       ...input,
       id: nextId("matriz"),
       criadoEm: nowIso(),
       atualizadoEm: nowIso(),
-    }),
-  atualizar: (id: string, patch: Partial<MatrizInput>) =>
-    delay<Matriz | undefined>(
-      (() => {
-        const m = mockMatrizes.find((x) => x.id === id);
-        return m ? { ...m, ...patch, atualizadoEm: nowIso() } : undefined;
-      })(),
-    ),
-  inativar: (id: string, novoStatus: Exclude<Matriz["status"], "ativa">) =>
-    delay<{ id: string; status: Matriz["status"] }>({
-      id,
-      status: novoStatus,
-    }),
+    };
+    mockMatrizes.push(novo);
+    return delay<Matriz>(novo);
+  },
+  atualizar: (id: string, patch: Partial<MatrizInput>) => {
+    const m = mockMatrizes.find((x) => x.id === id);
+    if (m) Object.assign(m, patch, { atualizadoEm: nowIso() });
+    return delay<Matriz | undefined>(m);
+  },
+  inativar: (id: string, novoStatus: Exclude<Matriz["status"], "ativa">) => {
+    const m = mockMatrizes.find((x) => x.id === id);
+    if (m) {
+      m.status = novoStatus;
+      m.atualizadoEm = nowIso();
+    }
+    return delay<{ id: string; status: Matriz["status"] }>({ id, status: novoStatus });
+  },
 };
 
 // ---------- Partos ----------
@@ -82,16 +86,21 @@ export const partoService = {
         )
         .slice(0, qtd),
     ),
-  criar: (input: Omit<Parto, "id">) =>
-    delay<Parto>({ ...input, id: nextId("parto") }),
-  atualizar: (id: string, patch: Partial<Omit<Parto, "id">>) =>
-    delay<Parto | undefined>(
-      (() => {
-        const p = mockPartos.find((x) => x.id === id);
-        return p ? { ...p, ...patch } : undefined;
-      })(),
-    ),
-  remover: (id: string) => delay<{ id: string; removido: true }>({ id, removido: true }),
+  criar: (input: Omit<Parto, "id">) => {
+    const novo: Parto = { ...input, id: nextId("parto") };
+    mockPartos.push(novo);
+    return delay<Parto>(novo);
+  },
+  atualizar: (id: string, patch: Partial<Omit<Parto, "id">>) => {
+    const p = mockPartos.find((x) => x.id === id);
+    if (p) Object.assign(p, patch);
+    return delay<Parto | undefined>(p);
+  },
+  remover: (id: string) => {
+    const idx = mockPartos.findIndex((x) => x.id === id);
+    if (idx >= 0) mockPartos.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
 };
 
 // ---------- Prenhezes ----------
@@ -103,20 +112,21 @@ export const prenhezService = {
     delay<Prenhez[]>(mockPrenhezes.filter((p) => p.matrizId === matrizId)),
   listarAtivas: () =>
     delay<Prenhez[]>(mockPrenhezes.filter((p) => p.status === "ativa")),
-  criar: (input: PrenhezInput) =>
-    delay<Prenhez>({ ...input, id: nextId("prenhez") }),
-  atualizar: (id: string, patch: Partial<PrenhezInput>) =>
-    delay<Prenhez | undefined>(
-      (() => {
-        const p = mockPrenhezes.find((x) => x.id === id);
-        return p ? { ...p, ...patch } : undefined;
-      })(),
-    ),
-  encerrar: (id: string) =>
-    delay<{ id: string; status: Prenhez["status"] }>({
-      id,
-      status: "encerrada",
-    }),
+  criar: (input: PrenhezInput) => {
+    const novo: Prenhez = { ...input, id: nextId("prenhez") };
+    mockPrenhezes.push(novo);
+    return delay<Prenhez>(novo);
+  },
+  atualizar: (id: string, patch: Partial<PrenhezInput>) => {
+    const p = mockPrenhezes.find((x) => x.id === id);
+    if (p) Object.assign(p, patch);
+    return delay<Prenhez | undefined>(p);
+  },
+  encerrar: (id: string) => {
+    const p = mockPrenhezes.find((x) => x.id === id);
+    if (p) p.status = "encerrada";
+    return delay<{ id: string; status: Prenhez["status"] }>({ id, status: "encerrada" });
+  },
 };
 
 // ---------- Descartes ----------
