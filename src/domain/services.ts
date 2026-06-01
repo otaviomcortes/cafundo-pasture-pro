@@ -86,16 +86,21 @@ export const partoService = {
         )
         .slice(0, qtd),
     ),
-  criar: (input: Omit<Parto, "id">) =>
-    delay<Parto>({ ...input, id: nextId("parto") }),
-  atualizar: (id: string, patch: Partial<Omit<Parto, "id">>) =>
-    delay<Parto | undefined>(
-      (() => {
-        const p = mockPartos.find((x) => x.id === id);
-        return p ? { ...p, ...patch } : undefined;
-      })(),
-    ),
-  remover: (id: string) => delay<{ id: string; removido: true }>({ id, removido: true }),
+  criar: (input: Omit<Parto, "id">) => {
+    const novo: Parto = { ...input, id: nextId("parto") };
+    mockPartos.push(novo);
+    return delay<Parto>(novo);
+  },
+  atualizar: (id: string, patch: Partial<Omit<Parto, "id">>) => {
+    const p = mockPartos.find((x) => x.id === id);
+    if (p) Object.assign(p, patch);
+    return delay<Parto | undefined>(p);
+  },
+  remover: (id: string) => {
+    const idx = mockPartos.findIndex((x) => x.id === id);
+    if (idx >= 0) mockPartos.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
 };
 
 // ---------- Prenhezes ----------
