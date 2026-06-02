@@ -41,9 +41,11 @@ import {
 } from "@/components/ui/dialog";
 import {
   matrizService,
+  partoService,
   type MatrizStatus,
   type SituacaoReprodutiva,
 } from "@/domain";
+import { indexarPartosPorMatriz } from "@/lib/validacoes";
 import {
   STATUS_LABEL,
   SITUACAO_LABEL,
