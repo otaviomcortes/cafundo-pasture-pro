@@ -70,6 +70,12 @@ function MatrizesPage() {
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
   });
+  const { data: partos = [] } = useQuery({
+    queryKey: ["partos"],
+    queryFn: () => partoService.listar(),
+  });
+  const partosPorMatriz = useMemo(() => indexarPartosPorMatriz(partos), [partos]);
+
 
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
