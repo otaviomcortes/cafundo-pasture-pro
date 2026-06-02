@@ -28,7 +28,11 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { matrizService, type SexoBezerro } from "@/domain";
-import { RACAS_BEZERRO, toDateInput } from "@/lib/partoUi";
+import {
+  RACAS_BEZERRO_PRESET,
+  isRacaPreset,
+  toDateInput,
+} from "@/lib/partoUi";
 
 export interface PartoFormValues {
   matrizId: string;
