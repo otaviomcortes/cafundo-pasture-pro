@@ -18,6 +18,7 @@ import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
 import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
+import { Route as AppProtocolosIatfNovoRouteImport } from './routes/_app.protocolos-iatf.novo'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
@@ -67,6 +68,11 @@ const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   path: '/matrizes/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProtocolosIatfNovoRoute = AppProtocolosIatfNovoRouteImport.update({
+  id: '/protocolos-iatf/novo',
+  path: '/protocolos-iatf/novo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPartosNovoRoute = AppPartosNovoRouteImport.update({
   id: '/partos/novo',
   path: '/partos/novo',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
+  '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
   '/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
+  '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
   '/protocolos-iatf': typeof AppProtocolosIatfIndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
   '/_app/partos/novo': typeof AppPartosNovoRoute
+  '/_app/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
   '/_app/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/matrizes/$id'
     | '/partos/novo'
+    | '/protocolos-iatf/novo'
     | '/matrizes/'
     | '/partos/'
     | '/protocolos-iatf/'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/matrizes/$id'
     | '/partos/novo'
+    | '/protocolos-iatf/novo'
     | '/matrizes'
     | '/partos'
     | '/protocolos-iatf'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/matrizes/$id'
     | '/_app/partos/novo'
+    | '/_app/protocolos-iatf/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
     | '/_app/protocolos-iatf/'
@@ -248,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/protocolos-iatf/novo': {
+      id: '/_app/protocolos-iatf/novo'
+      path: '/protocolos-iatf/novo'
+      fullPath: '/protocolos-iatf/novo'
+      preLoaderRoute: typeof AppProtocolosIatfNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/partos/novo': {
       id: '/_app/partos/novo'
       path: '/partos/novo'
@@ -286,6 +305,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
   AppPartosNovoRoute: typeof AppPartosNovoRoute
+  AppProtocolosIatfNovoRoute: typeof AppProtocolosIatfNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
   AppProtocolosIatfIndexRoute: typeof AppProtocolosIatfIndexRoute
@@ -300,6 +320,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
   AppPartosNovoRoute: AppPartosNovoRoute,
+  AppProtocolosIatfNovoRoute: AppProtocolosIatfNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
   AppProtocolosIatfIndexRoute: AppProtocolosIatfIndexRoute,
@@ -316,3 +337,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
