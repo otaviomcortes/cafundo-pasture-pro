@@ -21,13 +21,7 @@ import {
 for (const m of mockMatrizes) {
   m.quantidadePartos = mockPartos.filter((p) => p.matrizId === m.id).length;
 }
- * Toda função é assíncrona para facilitar a futura troca por chamadas reais
- * (PostgreSQL / API) sem mudança de assinatura nos componentes consumidores.
- *
- * As assinaturas de CRUD (criar/atualizar/remover|inativar) já estão expostas
- * como stubs — ainda não persistem alterações, apenas retornam dados coerentes
- * para a futura integração.
- */
+
 
 function delay<T>(value: T, ms = 50): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
