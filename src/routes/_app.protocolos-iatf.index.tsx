@@ -223,11 +223,12 @@ function ProtocolosIatfPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => navigate({ to: "/protocolos-iatf/$id", params: { id: p.id }, search: { editar: 1 } as never })}
+                          onClick={() => navigate({ to: "/protocolos-iatf/$id", params: { id: p.id }, hash: "editar" })}
                         >
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
                         </Button>
+
                       </div>
                     </TableCell>
                   </TableRow>
