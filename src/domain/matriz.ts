@@ -19,8 +19,8 @@ export interface Matriz {
   atualizadoEm: string;
 }
 
-// Predominantemente Nelore; pequena variação para refletir cruzamentos pontuais.
-const RACAS = ["Nelore", "Nelore", "Nelore", "Nelore", "Cruza Nelore x Angus"];
+// A Fazenda Cafundó trabalha 100% com matrizes Nelore.
+const RACA_MATRIZ = "Nelore";
 
 function isoDaysAgo(days: number): string {
   const d = new Date();
@@ -32,7 +32,7 @@ function gerarMatrizes(qtd: number): Matriz[] {
   const matrizes: Matriz[] = [];
   for (let i = 1; i <= qtd; i++) {
     const brinco = String(100 + i);
-    const raca = RACAS[i % RACAS.length];
+    const raca = RACA_MATRIZ;
     const idadeDias = 365 * (3 + (i % 8)); // 3 a 10 anos
 
     // Distribuição total = 200: 185 ativas, 10 descartadas, 3 vendidas, 2 mortas.
