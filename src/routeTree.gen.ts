@@ -13,9 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
-import { Route as AppProtocolosRouteImport } from './routes/_app.protocolos'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
-import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
@@ -43,19 +41,9 @@ const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AppRoute,
 } as any)
-const AppProtocolosRoute = AppProtocolosRouteImport.update({
-  id: '/protocolos',
-  path: '/protocolos',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
   id: '/prenhezes',
   path: '/prenhezes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppEstacoesRoute = AppEstacoesRouteImport.update({
-  id: '/estacoes',
-  path: '/estacoes',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDescartesRoute = AppDescartesRouteImport.update({
@@ -98,9 +86,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
-  '/estacoes': typeof AppEstacoesRoute
   '/prenhezes': typeof AppPrenhezesRoute
-  '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
@@ -112,9 +98,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
-  '/estacoes': typeof AppEstacoesRoute
   '/prenhezes': typeof AppPrenhezesRoute
-  '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
@@ -129,9 +113,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/descartes': typeof AppDescartesRoute
-  '/_app/estacoes': typeof AppEstacoesRoute
   '/_app/prenhezes': typeof AppPrenhezesRoute
-  '/_app/protocolos': typeof AppProtocolosRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
@@ -147,9 +129,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/descartes'
-    | '/estacoes'
     | '/prenhezes'
-    | '/protocolos'
     | '/relatorios'
     | '/matrizes/$id'
     | '/partos/novo'
@@ -161,9 +141,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/descartes'
-    | '/estacoes'
     | '/prenhezes'
-    | '/protocolos'
     | '/relatorios'
     | '/'
     | '/matrizes/$id'
@@ -177,9 +155,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/descartes'
-    | '/_app/estacoes'
     | '/_app/prenhezes'
-    | '/_app/protocolos'
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/matrizes/$id'
@@ -225,25 +201,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRelatoriosRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/protocolos': {
-      id: '/_app/protocolos'
-      path: '/protocolos'
-      fullPath: '/protocolos'
-      preLoaderRoute: typeof AppProtocolosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/prenhezes': {
       id: '/_app/prenhezes'
       path: '/prenhezes'
       fullPath: '/prenhezes'
       preLoaderRoute: typeof AppPrenhezesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/estacoes': {
-      id: '/_app/estacoes'
-      path: '/estacoes'
-      fullPath: '/estacoes'
-      preLoaderRoute: typeof AppEstacoesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/descartes': {
@@ -300,9 +262,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDescartesRoute: typeof AppDescartesRoute
-  AppEstacoesRoute: typeof AppEstacoesRoute
   AppPrenhezesRoute: typeof AppPrenhezesRoute
-  AppProtocolosRoute: typeof AppProtocolosRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
@@ -315,9 +275,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDescartesRoute: AppDescartesRoute,
-  AppEstacoesRoute: AppEstacoesRoute,
   AppPrenhezesRoute: AppPrenhezesRoute,
-  AppProtocolosRoute: AppProtocolosRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
@@ -337,3 +295,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
