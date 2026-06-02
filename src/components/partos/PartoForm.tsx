@@ -74,6 +74,19 @@ export function PartoForm({
   const [matrizOpen, setMatrizOpen] = useState(false);
   const [erros, setErros] = useState<Partial<Record<keyof PartoFormValues, string>>>({});
 
+  // Modo de raça: preset (Nelore/Aberdeen) ou "outros" (texto livre).
+  const initialMode: "preset" | "outros" =
+    !initial.racaBezerro || isRacaPreset(initial.racaBezerro) ? "preset" : "outros";
+  const [racaMode, setRacaMode] = useState<"preset" | "outros">(initialMode);
+  const [racaPreset, setRacaPreset] = useState<string>(
+    initialMode === "preset" && initial.racaBezerro
+      ? initial.racaBezerro
+      : "Nelore",
+  );
+  const [racaOutros, setRacaOutros] = useState<string>(
+    initialMode === "outros" ? initial.racaBezerro : "",
+  );
+
   const { data: matrizes = [] } = useQuery({
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
