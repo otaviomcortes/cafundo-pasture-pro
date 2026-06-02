@@ -199,20 +199,24 @@ export const protocoloIatfService = {
           p.status === "aguardando_diagnostico",
       ),
     ),
-  criar: (input: Omit<ProtocoloIatf, "id">) =>
-    delay<ProtocoloIatf>({ ...input, id: nextId("protocolo") }),
-  atualizar: (id: string, patch: Partial<Omit<ProtocoloIatf, "id">>) =>
-    delay<ProtocoloIatf | undefined>(
-      (() => {
-        const p = mockProtocolosIatf.find((x) => x.id === id);
-        return p ? { ...p, ...patch } : undefined;
-      })(),
-    ),
-  finalizar: (id: string) =>
-    delay<{ id: string; status: ProtocoloIatf["status"] }>({
+  criar: (input: Omit<ProtocoloIatf, "id">) => {
+    const novo: ProtocoloIatf = { ...input, id: nextId("protocolo") };
+    mockProtocolosIatf.push(novo);
+    return delay<ProtocoloIatf>(novo);
+  },
+  atualizar: (id: string, patch: Partial<Omit<ProtocoloIatf, "id">>) => {
+    const p = mockProtocolosIatf.find((x) => x.id === id);
+    if (p) Object.assign(p, patch);
+    return delay<ProtocoloIatf | undefined>(p);
+  },
+  finalizar: (id: string) => {
+    const p = mockProtocolosIatf.find((x) => x.id === id);
+    if (p) p.status = "finalizado";
+    return delay<{ id: string; status: ProtocoloIatf["status"] }>({
       id,
       status: "finalizado",
-    }),
+    });
+  },
 };
 
 // ---------- Protocolo x Matriz (participações) ----------
@@ -230,20 +234,25 @@ export const protocoloMatrizService = {
     delay<ProtocoloMatriz[]>(
       mockProtocolosMatrizes.filter((p) => p.matrizId === matrizId),
     ),
-  criar: (input: ProtocoloMatrizInput) =>
-    delay<ProtocoloMatriz>({
+  criar: (input: ProtocoloMatrizInput) => {
+    const novo: ProtocoloMatriz = {
       ...input,
       id: nextId("protmat"),
       criadoEm: nowIso(),
       atualizadoEm: nowIso(),
-    }),
-  atualizar: (id: string, patch: Partial<ProtocoloMatrizInput>) =>
-    delay<ProtocoloMatriz | undefined>(
-      (() => {
-        const p = mockProtocolosMatrizes.find((x) => x.id === id);
-        return p ? { ...p, ...patch, atualizadoEm: nowIso() } : undefined;
-      })(),
-    ),
-  remover: (id: string) =>
-    delay<{ id: string; removido: true }>({ id, removido: true }),
+    };
+    mockProtocolosMatrizes.push(novo);
+    return delay<ProtocoloMatriz>(novo);
+  },
+  atualizar: (id: string, patch: Partial<ProtocoloMatrizInput>) => {
+    const p = mockProtocolosMatrizes.find((x) => x.id === id);
+    if (p) Object.assign(p, patch, { atualizadoEm: nowIso() });
+    return delay<ProtocoloMatriz | undefined>(p);
+  },
+  remover: (id: string) => {
+    const idx = mockProtocolosMatrizes.findIndex((x) => x.id === id);
+    if (idx >= 0) mockProtocolosMatrizes.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
 };
+

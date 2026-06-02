@@ -13,12 +13,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
-import { Route as AppProtocolosRouteImport } from './routes/_app.protocolos'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
-import { Route as AppEstacoesRouteImport } from './routes/_app.estacoes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
+import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
+import { Route as AppProtocolosIatfNovoRouteImport } from './routes/_app.protocolos-iatf.novo'
+import { Route as AppProtocolosIatfIdRouteImport } from './routes/_app.protocolos-iatf.$id'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
@@ -43,24 +44,19 @@ const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AppRoute,
 } as any)
-const AppProtocolosRoute = AppProtocolosRouteImport.update({
-  id: '/protocolos',
-  path: '/protocolos',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
   id: '/prenhezes',
   path: '/prenhezes',
   getParentRoute: () => AppRoute,
 } as any)
-const AppEstacoesRoute = AppEstacoesRouteImport.update({
-  id: '/estacoes',
-  path: '/estacoes',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDescartesRoute = AppDescartesRouteImport.update({
   id: '/descartes',
   path: '/descartes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfIndexRoute = AppProtocolosIatfIndexRouteImport.update({
+  id: '/protocolos-iatf/',
+  path: '/protocolos-iatf/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
@@ -71,6 +67,16 @@ const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
 const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   id: '/matrizes/',
   path: '/matrizes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfNovoRoute = AppProtocolosIatfNovoRouteImport.update({
+  id: '/protocolos-iatf/novo',
+  path: '/protocolos-iatf/novo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfIdRoute = AppProtocolosIatfIdRouteImport.update({
+  id: '/protocolos-iatf/$id',
+  path: '/protocolos-iatf/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPartosNovoRoute = AppPartosNovoRouteImport.update({
@@ -98,29 +104,31 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
-  '/estacoes': typeof AppEstacoesRoute
   '/prenhezes': typeof AppPrenhezesRoute
-  '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
+  '/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
+  '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
+  '/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/descartes': typeof AppDescartesRoute
-  '/estacoes': typeof AppEstacoesRoute
   '/prenhezes': typeof AppPrenhezesRoute
-  '/protocolos': typeof AppProtocolosRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
+  '/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
+  '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
+  '/protocolos-iatf': typeof AppProtocolosIatfIndexRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id': typeof AppPartosIdIndexRoute
 }
@@ -129,15 +137,16 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/descartes': typeof AppDescartesRoute
-  '/_app/estacoes': typeof AppEstacoesRoute
   '/_app/prenhezes': typeof AppPrenhezesRoute
-  '/_app/protocolos': typeof AppProtocolosRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
   '/_app/partos/novo': typeof AppPartosNovoRoute
+  '/_app/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
+  '/_app/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
+  '/_app/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
@@ -147,29 +156,31 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/descartes'
-    | '/estacoes'
     | '/prenhezes'
-    | '/protocolos'
     | '/relatorios'
     | '/matrizes/$id'
     | '/partos/novo'
+    | '/protocolos-iatf/$id'
+    | '/protocolos-iatf/novo'
     | '/matrizes/'
     | '/partos/'
+    | '/protocolos-iatf/'
     | '/partos/$id/editar'
     | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/descartes'
-    | '/estacoes'
     | '/prenhezes'
-    | '/protocolos'
     | '/relatorios'
     | '/'
     | '/matrizes/$id'
     | '/partos/novo'
+    | '/protocolos-iatf/$id'
+    | '/protocolos-iatf/novo'
     | '/matrizes'
     | '/partos'
+    | '/protocolos-iatf'
     | '/partos/$id/editar'
     | '/partos/$id'
   id:
@@ -177,15 +188,16 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/descartes'
-    | '/_app/estacoes'
     | '/_app/prenhezes'
-    | '/_app/protocolos'
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/matrizes/$id'
     | '/_app/partos/novo'
+    | '/_app/protocolos-iatf/$id'
+    | '/_app/protocolos-iatf/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
+    | '/_app/protocolos-iatf/'
     | '/_app/partos/$id/editar'
     | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
@@ -225,13 +237,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRelatoriosRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/protocolos': {
-      id: '/_app/protocolos'
-      path: '/protocolos'
-      fullPath: '/protocolos'
-      preLoaderRoute: typeof AppProtocolosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/prenhezes': {
       id: '/_app/prenhezes'
       path: '/prenhezes'
@@ -239,18 +244,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPrenhezesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/estacoes': {
-      id: '/_app/estacoes'
-      path: '/estacoes'
-      fullPath: '/estacoes'
-      preLoaderRoute: typeof AppEstacoesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/descartes': {
       id: '/_app/descartes'
       path: '/descartes'
       fullPath: '/descartes'
       preLoaderRoute: typeof AppDescartesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/protocolos-iatf/': {
+      id: '/_app/protocolos-iatf/'
+      path: '/protocolos-iatf'
+      fullPath: '/protocolos-iatf/'
+      preLoaderRoute: typeof AppProtocolosIatfIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/': {
@@ -265,6 +270,20 @@ declare module '@tanstack/react-router' {
       path: '/matrizes'
       fullPath: '/matrizes/'
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/protocolos-iatf/novo': {
+      id: '/_app/protocolos-iatf/novo'
+      path: '/protocolos-iatf/novo'
+      fullPath: '/protocolos-iatf/novo'
+      preLoaderRoute: typeof AppProtocolosIatfNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/protocolos-iatf/$id': {
+      id: '/_app/protocolos-iatf/$id'
+      path: '/protocolos-iatf/$id'
+      fullPath: '/protocolos-iatf/$id'
+      preLoaderRoute: typeof AppProtocolosIatfIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/novo': {
@@ -300,30 +319,32 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDescartesRoute: typeof AppDescartesRoute
-  AppEstacoesRoute: typeof AppEstacoesRoute
   AppPrenhezesRoute: typeof AppPrenhezesRoute
-  AppProtocolosRoute: typeof AppProtocolosRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
   AppPartosNovoRoute: typeof AppPartosNovoRoute
+  AppProtocolosIatfIdRoute: typeof AppProtocolosIatfIdRoute
+  AppProtocolosIatfNovoRoute: typeof AppProtocolosIatfNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
+  AppProtocolosIatfIndexRoute: typeof AppProtocolosIatfIndexRoute
   AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
   AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDescartesRoute: AppDescartesRoute,
-  AppEstacoesRoute: AppEstacoesRoute,
   AppPrenhezesRoute: AppPrenhezesRoute,
-  AppProtocolosRoute: AppProtocolosRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
   AppPartosNovoRoute: AppPartosNovoRoute,
+  AppProtocolosIatfIdRoute: AppProtocolosIatfIdRoute,
+  AppProtocolosIatfNovoRoute: AppProtocolosIatfNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
+  AppProtocolosIatfIndexRoute: AppProtocolosIatfIndexRoute,
   AppPartosIdEditarRoute: AppPartosIdEditarRoute,
   AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }

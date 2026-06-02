@@ -2,7 +2,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Beef,
-  CalendarRange,
   Syringe,
   HeartPulse,
   Baby,
@@ -26,8 +25,7 @@ import { Logo } from "./Logo";
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Matrizes", url: "/matrizes", icon: Beef },
-  { title: "Estações de Monta", url: "/estacoes", icon: CalendarRange },
-  { title: "Protocolos IATF", url: "/protocolos", icon: Syringe },
+  { title: "Protocolos IATF", url: "/protocolos-iatf", icon: Syringe },
   { title: "Prenhezes", url: "/prenhezes", icon: HeartPulse },
   { title: "Partos", url: "/partos", icon: Baby },
   { title: "Descartes", url: "/descartes", icon: PackageMinus },
