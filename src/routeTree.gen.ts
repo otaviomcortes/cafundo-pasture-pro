@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
+import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
@@ -49,6 +50,11 @@ const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
 const AppDescartesRoute = AppDescartesRouteImport.update({
   id: '/descartes',
   path: '/descartes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfIndexRoute = AppProtocolosIatfIndexRouteImport.update({
+  id: '/protocolos-iatf/',
+  path: '/protocolos-iatf/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
+  '/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id/': typeof AppPartosIdIndexRoute
 }
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/partos/novo': typeof AppPartosNovoRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
+  '/protocolos-iatf': typeof AppProtocolosIatfIndexRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/partos/$id': typeof AppPartosIdIndexRoute
 }
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
+  '/_app/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes/'
     | '/partos/'
+    | '/protocolos-iatf/'
     | '/partos/$id/editar'
     | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/partos/novo'
     | '/matrizes'
     | '/partos'
+    | '/protocolos-iatf'
     | '/partos/$id/editar'
     | '/partos/$id'
   id:
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/_app/partos/novo'
     | '/_app/matrizes/'
     | '/_app/partos/'
+    | '/_app/protocolos-iatf/'
     | '/_app/partos/$id/editar'
     | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
@@ -213,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/descartes'
       fullPath: '/descartes'
       preLoaderRoute: typeof AppDescartesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/protocolos-iatf/': {
+      id: '/_app/protocolos-iatf/'
+      path: '/protocolos-iatf'
+      fullPath: '/protocolos-iatf/'
+      preLoaderRoute: typeof AppProtocolosIatfIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/': {
@@ -269,6 +288,7 @@ interface AppRouteChildren {
   AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
+  AppProtocolosIatfIndexRoute: typeof AppProtocolosIatfIndexRoute
   AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
   AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
@@ -282,6 +302,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPartosNovoRoute: AppPartosNovoRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
+  AppProtocolosIatfIndexRoute: AppProtocolosIatfIndexRoute,
   AppPartosIdEditarRoute: AppPartosIdEditarRoute,
   AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }
