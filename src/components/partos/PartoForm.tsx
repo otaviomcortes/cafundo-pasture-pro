@@ -258,20 +258,39 @@ export function PartoForm({
           <div className="space-y-2">
             <Label>Raça do bezerro</Label>
             <Select
-              value={values.racaBezerro}
-              onValueChange={(v) => set("racaBezerro", v)}
+              value={racaMode === "outros" ? "Outros" : racaPreset}
+              onValueChange={(v) => {
+                setErros((prev) => ({ ...prev, racaBezerro: undefined }));
+                if (v === "Outros") {
+                  setRacaMode("outros");
+                } else {
+                  setRacaMode("preset");
+                  setRacaPreset(v);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {RACAS_BEZERRO.map((r) => (
+                {RACAS_BEZERRO_PRESET.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}
                   </SelectItem>
                 ))}
+                <SelectItem value="Outros">Outros</SelectItem>
               </SelectContent>
             </Select>
+            {racaMode === "outros" && (
+              <Input
+                placeholder="Informe a raça (ex.: Angus, Brahman, Senepol...)"
+                value={racaOutros}
+                onChange={(e) => {
+                  setRacaOutros(e.target.value);
+                  setErros((prev) => ({ ...prev, racaBezerro: undefined }));
+                }}
+              />
+            )}
             {erros.racaBezerro && (
               <p className="text-xs text-destructive">{erros.racaBezerro}</p>
             )}
