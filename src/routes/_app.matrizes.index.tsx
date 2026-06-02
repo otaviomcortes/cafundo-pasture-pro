@@ -295,7 +295,7 @@ function MatrizesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {m.quantidadePartos}
+                      {partosPorMatriz.get(m.id) ?? 0}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
