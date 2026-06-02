@@ -113,16 +113,21 @@ export function PartoForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const racaFinal =
+      racaMode === "outros" ? racaOutros.trim() : racaPreset;
     const novos: typeof erros = {};
     if (!values.matrizId) novos.matrizId = "Selecione a matriz.";
     if (!values.dataParto) novos.dataParto = "Informe a data do parto.";
     if (!values.sexoBezerro) novos.sexoBezerro = "Informe o sexo do bezerro.";
-    if (!values.racaBezerro.trim()) novos.racaBezerro = "Informe a raça.";
+    if (!racaFinal) {
+      novos.racaBezerro =
+        racaMode === "outros" ? "Informe a raça." : "Selecione a raça.";
+    }
     if (Object.keys(novos).length > 0) {
       setErros(novos);
       return;
     }
-    onSubmit(values);
+    onSubmit({ ...values, racaBezerro: racaFinal });
   }
 
   return (
