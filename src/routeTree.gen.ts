@@ -15,15 +15,15 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
 import { Route as AppDescartesRouteImport } from './routes/_app.descartes'
-import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
-import { Route as AppProtocolosIatfNovoRouteImport } from './routes/_app.protocolos-iatf.novo'
-import { Route as AppProtocolosIatfIdRouteImport } from './routes/_app.protocolos-iatf.$id'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
 import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
+import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
+import { Route as AppProtocolosIatfNovoRouteImport } from './routes/_app.protocolos-iatf.novo'
+import { Route as AppProtocolosIatfIdRouteImport } from './routes/_app.protocolos-iatf.$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -54,11 +54,6 @@ const AppDescartesRoute = AppDescartesRouteImport.update({
   path: '/descartes',
   getParentRoute: () => AppRoute,
 } as any)
-const AppProtocolosIatfIndexRoute = AppProtocolosIatfIndexRouteImport.update({
-  id: '/protocolos-iatf/',
-  path: '/protocolos-iatf/',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
   id: '/partos/',
   path: '/partos/',
@@ -67,16 +62,6 @@ const AppPartosIndexRoute = AppPartosIndexRouteImport.update({
 const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   id: '/matrizes/',
   path: '/matrizes/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProtocolosIatfNovoRoute = AppProtocolosIatfNovoRouteImport.update({
-  id: '/protocolos-iatf/novo',
-  path: '/protocolos-iatf/novo',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProtocolosIatfIdRoute = AppProtocolosIatfIdRouteImport.update({
-  id: '/protocolos-iatf/$id',
-  path: '/protocolos-iatf/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPartosNovoRoute = AppPartosNovoRouteImport.update({
@@ -97,6 +82,21 @@ const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
 const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
   id: '/partos/$id/editar',
   path: '/partos/$id/editar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfIndexRoute = AppProtocolosIatfIndexRouteImport.update({
+  id: '/protocolos-iatf/',
+  path: '/protocolos-iatf/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfNovoRoute = AppProtocolosIatfNovoRouteImport.update({
+  id: '/protocolos-iatf/novo',
+  path: '/protocolos-iatf/novo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtocolosIatfIdRoute = AppProtocolosIatfIdRouteImport.update({
+  id: '/protocolos-iatf/$id',
+  path: '/protocolos-iatf/$id',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -251,13 +251,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDescartesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/protocolos-iatf/': {
-      id: '/_app/protocolos-iatf/'
-      path: '/protocolos-iatf'
-      fullPath: '/protocolos-iatf/'
-      preLoaderRoute: typeof AppProtocolosIatfIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/partos/': {
       id: '/_app/partos/'
       path: '/partos'
@@ -272,18 +265,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/protocolos-iatf/novo': {
-      id: '/_app/protocolos-iatf/novo'
-      path: '/protocolos-iatf/novo'
-      fullPath: '/protocolos-iatf/novo'
-      preLoaderRoute: typeof AppProtocolosIatfNovoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/protocolos-iatf/$id': {
-      id: '/_app/protocolos-iatf/$id'
-      path: '/protocolos-iatf/$id'
-      fullPath: '/protocolos-iatf/$id'
-      preLoaderRoute: typeof AppProtocolosIatfIdRouteImport
+    '/_app/protocolos-iatf/': {
+      id: '/_app/protocolos-iatf/'
+      path: '/protocolos-iatf'
+      fullPath: '/protocolos-iatf/'
+      preLoaderRoute: typeof AppProtocolosIatfIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/novo': {
@@ -293,11 +279,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosNovoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/protocolos-iatf/novo': {
+      id: '/_app/protocolos-iatf/novo'
+      path: '/protocolos-iatf/novo'
+      fullPath: '/protocolos-iatf/novo'
+      preLoaderRoute: typeof AppProtocolosIatfNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/matrizes/$id': {
       id: '/_app/matrizes/$id'
       path: '/matrizes/$id'
       fullPath: '/matrizes/$id'
       preLoaderRoute: typeof AppMatrizesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/protocolos-iatf/$id': {
+      id: '/_app/protocolos-iatf/$id'
+      path: '/protocolos-iatf/$id'
+      fullPath: '/protocolos-iatf/$id'
+      preLoaderRoute: typeof AppProtocolosIatfIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/$id/': {
@@ -358,13 +358,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
