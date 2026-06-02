@@ -41,9 +41,11 @@ import {
 } from "@/components/ui/dialog";
 import {
   matrizService,
+  partoService,
   type MatrizStatus,
   type SituacaoReprodutiva,
 } from "@/domain";
+import { indexarPartosPorMatriz } from "@/lib/validacoes";
 import {
   STATUS_LABEL,
   SITUACAO_LABEL,
@@ -68,6 +70,12 @@ function MatrizesPage() {
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
   });
+  const { data: partos = [] } = useQuery({
+    queryKey: ["partos"],
+    queryFn: () => partoService.listar(),
+  });
+  const partosPorMatriz = useMemo(() => indexarPartosPorMatriz(partos), [partos]);
+
 
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
@@ -287,7 +295,7 @@ function MatrizesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {m.quantidadePartos}
+                      {partosPorMatriz.get(m.id) ?? 0}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">

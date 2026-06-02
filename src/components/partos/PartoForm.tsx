@@ -28,7 +28,11 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { matrizService, type SexoBezerro } from "@/domain";
-import { RACAS_BEZERRO, toDateInput } from "@/lib/partoUi";
+import {
+  RACAS_BEZERRO_PRESET,
+  isRacaPreset,
+  toDateInput,
+} from "@/lib/partoUi";
 
 export interface PartoFormValues {
   matrizId: string;
@@ -70,6 +74,19 @@ export function PartoForm({
   const [matrizOpen, setMatrizOpen] = useState(false);
   const [erros, setErros] = useState<Partial<Record<keyof PartoFormValues, string>>>({});
 
+  // Modo de raça: preset (Nelore/Aberdeen) ou "outros" (texto livre).
+  const initialMode: "preset" | "outros" =
+    !initial.racaBezerro || isRacaPreset(initial.racaBezerro) ? "preset" : "outros";
+  const [racaMode, setRacaMode] = useState<"preset" | "outros">(initialMode);
+  const [racaPreset, setRacaPreset] = useState<string>(
+    initialMode === "preset" && initial.racaBezerro
+      ? initial.racaBezerro
+      : "Nelore",
+  );
+  const [racaOutros, setRacaOutros] = useState<string>(
+    initialMode === "outros" ? initial.racaBezerro : "",
+  );
+
   const { data: matrizes = [] } = useQuery({
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
@@ -96,16 +113,21 @@ export function PartoForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const racaFinal =
+      racaMode === "outros" ? racaOutros.trim() : racaPreset;
     const novos: typeof erros = {};
     if (!values.matrizId) novos.matrizId = "Selecione a matriz.";
     if (!values.dataParto) novos.dataParto = "Informe a data do parto.";
     if (!values.sexoBezerro) novos.sexoBezerro = "Informe o sexo do bezerro.";
-    if (!values.racaBezerro.trim()) novos.racaBezerro = "Informe a raça.";
+    if (!racaFinal) {
+      novos.racaBezerro =
+        racaMode === "outros" ? "Informe a raça." : "Selecione a raça.";
+    }
     if (Object.keys(novos).length > 0) {
       setErros(novos);
       return;
     }
-    onSubmit(values);
+    onSubmit({ ...values, racaBezerro: racaFinal });
   }
 
   return (
@@ -236,20 +258,39 @@ export function PartoForm({
           <div className="space-y-2">
             <Label>Raça do bezerro</Label>
             <Select
-              value={values.racaBezerro}
-              onValueChange={(v) => set("racaBezerro", v)}
+              value={racaMode === "outros" ? "Outros" : racaPreset}
+              onValueChange={(v) => {
+                setErros((prev) => ({ ...prev, racaBezerro: undefined }));
+                if (v === "Outros") {
+                  setRacaMode("outros");
+                } else {
+                  setRacaMode("preset");
+                  setRacaPreset(v);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {RACAS_BEZERRO.map((r) => (
+                {RACAS_BEZERRO_PRESET.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}
                   </SelectItem>
                 ))}
+                <SelectItem value="Outros">Outros</SelectItem>
               </SelectContent>
             </Select>
+            {racaMode === "outros" && (
+              <Input
+                placeholder="Informe a raça (ex.: Angus, Brahman, Senepol...)"
+                value={racaOutros}
+                onChange={(e) => {
+                  setRacaOutros(e.target.value);
+                  setErros((prev) => ({ ...prev, racaBezerro: undefined }));
+                }}
+              />
+            )}
             {erros.racaBezerro && (
               <p className="text-xs text-destructive">{erros.racaBezerro}</p>
             )}

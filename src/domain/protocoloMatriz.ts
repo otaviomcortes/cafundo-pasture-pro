@@ -36,10 +36,13 @@ function gerarParticipacoes(): ProtocoloMatriz[] {
   const participacoes: ProtocoloMatriz[] = [];
   let seq = 1;
 
-  const ativas = mockMatrizes.filter((m) => m.status === "ativa");
+  // Regra de consistência: matriz em protocolo não pode estar prenha nem
+  // descartada/vendida/morta. Só consideramos ativas e não prenhas.
+  const elegivelGlobal = mockMatrizes.filter(
+    (m) => m.status === "ativa" && m.situacaoReprodutiva !== "prenha",
+  );
 
   for (const protocolo of mockProtocolosIatf) {
-    // Quantidade-alvo por protocolo (coerente com observações dos mocks).
     const alvo =
       protocolo.id === "protocolo-1"
         ? 64
@@ -49,11 +52,7 @@ function gerarParticipacoes(): ProtocoloMatriz[] {
             ? 22
             : 56;
 
-    // Filtro: para planejados, não incluir prenhas.
-    const elegiveis =
-      protocolo.status === "planejado"
-        ? ativas.filter((m) => m.situacaoReprodutiva !== "prenha")
-        : ativas;
+    const elegiveis = elegivelGlobal;
 
     const selecionadas = elegiveis.slice(
       (seq * 7) % Math.max(1, elegiveis.length - alvo),

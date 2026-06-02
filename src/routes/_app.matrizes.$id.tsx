@@ -226,7 +226,7 @@ function MatrizDetalhePage() {
               </Badge>
             }
           />
-          <Info label="Quantidade de partos" value={matriz.quantidadePartos} />
+          <Info label="Quantidade de partos" value={partos.length} />
           <Info label="Cadastrada em" value={formatDate(matriz.criadoEm)} />
           <Info label="Atualizada em" value={formatDate(matriz.atualizadoEm)} />
           <div className="col-span-2 md:col-span-3 lg:col-span-4">
