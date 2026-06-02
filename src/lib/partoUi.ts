@@ -10,12 +10,16 @@ export const SEXO_BADGE: Record<SexoBezerro, string> = {
   femea: "bg-primary/10 text-primary border-primary/30",
 };
 
-export const RACAS_BEZERRO = [
-  "Nelore",
-  "Cruza Nelore x Angus",
-  "Brahman",
-  "Angus",
-];
+/**
+ * Raças padrão de bezerros na Fazenda Cafundó.
+ * Qualquer outra raça é registrada via opção "Outros" com texto livre.
+ */
+export const RACAS_BEZERRO_PRESET = ["Nelore", "Aberdeen"] as const;
+export type RacaBezerroPreset = (typeof RACAS_BEZERRO_PRESET)[number];
+
+export function isRacaPreset(raca: string): raca is RacaBezerroPreset {
+  return (RACAS_BEZERRO_PRESET as readonly string[]).includes(raca);
+}
 
 export function formatDate(iso?: string): string {
   if (!iso) return "—";
