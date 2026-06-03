@@ -272,6 +272,7 @@ function MatrizesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Brinco</TableHead>
+                <TableHead>Proprietário</TableHead>
                 <TableHead>Idade</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Situação Reprodutiva</TableHead>
@@ -283,7 +284,7 @@ function MatrizesPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Carregando matrizes...
@@ -292,7 +293,7 @@ function MatrizesPage() {
               ) : filtradas.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Nenhuma matriz encontrada com os filtros atuais.
