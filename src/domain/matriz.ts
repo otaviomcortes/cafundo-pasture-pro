@@ -72,6 +72,7 @@ function gerarMatrizes(qtd: number): Matriz[] {
       id: `matriz-${i}`,
       numeroBrinco: brinco,
       raca,
+      proprietario: PROPRIETARIOS_MATRIZ[i % PROPRIETARIOS_MATRIZ.length],
       dataNascimento: isoDaysAgo(idadeDias),
       status,
       situacaoReprodutiva: situacao,
