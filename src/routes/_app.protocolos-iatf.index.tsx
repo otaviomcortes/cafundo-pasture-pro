@@ -63,6 +63,7 @@ type StatusFiltro = StatusProtocoloIatf | "todos";
 
 function ProtocolosIatfPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const { data: protocolos = [], isLoading } = useQuery({
     queryKey: ["protocolosIatf"],
@@ -79,8 +80,47 @@ function ProtocolosIatfPage() {
     return m;
   }, [participacoes]);
 
+  const prenhasPorProtocolo = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of participacoes) {
+      if (p.diagnosticoPrenhez === "prenha") {
+        m.set(p.protocoloId, (m.get(p.protocoloId) ?? 0) + 1);
+      }
+    }
+    return m;
+  }, [participacoes]);
+
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
+  const [excluirId, setExcluirId] = useState<string | null>(null);
+
+  const protocoloExcluir = protocolos.find((p) => p.id === excluirId) ?? null;
+  const matrizesExcluir = excluirId ? matrizesPorProtocolo.get(excluirId) ?? 0 : 0;
+  const prenhasExcluir = excluirId ? prenhasPorProtocolo.get(excluirId) ?? 0 : 0;
+
+  async function confirmarExclusao() {
+    if (!excluirId) return;
+    try {
+      const vinculos = participacoes.filter((p) => p.protocoloId === excluirId);
+      for (const pm of vinculos) {
+        await protocoloMatrizService.remover(pm.id);
+        if (pm.diagnosticoPrenhez !== "prenha") {
+          await matrizService.atualizar(pm.matrizId, {
+            situacaoReprodutiva: "vazia",
+          });
+        }
+      }
+      await protocoloIatfService.remover(excluirId);
+      qc.invalidateQueries({ queryKey: ["protocolosIatf"] });
+      qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Protocolo IATF excluído com sucesso.");
+      setExcluirId(null);
+    } catch {
+      toast.error("Erro ao excluir protocolo.");
+    }
+  }
+
 
   const resumo = useMemo(() => {
     return {
