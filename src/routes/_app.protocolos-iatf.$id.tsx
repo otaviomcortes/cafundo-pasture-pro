@@ -272,6 +272,38 @@ function ProtocoloDetalhePage() {
     (p) => p.etapa1Concluida && p.etapa2Concluida && p.etapa3Concluida,
   ).length;
   const pendentes = total - todasConcluidas;
+  const prenhasNoProtocolo = participacoes.filter(
+    (p) => p.diagnosticoPrenhez === "prenha",
+  ).length;
+
+  const [confirmExcluirOpen, setConfirmExcluirOpen] = useState(false);
+
+  async function excluirProtocolo() {
+    try {
+      for (const pm of participacoes) {
+        const matriz = matrizPorId.get(pm.matrizId);
+        await protocoloMatrizService.remover(pm.id);
+        if (
+          matriz &&
+          matriz.situacaoReprodutiva === "em_protocolo" &&
+          pm.diagnosticoPrenhez !== "prenha"
+        ) {
+          await matrizService.atualizar(matriz.id, {
+            situacaoReprodutiva: "vazia",
+          });
+        }
+      }
+      await protocoloIatfService.remover(id);
+      qc.invalidateQueries({ queryKey: ["protocolosIatf"] });
+      qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Protocolo IATF excluído com sucesso.");
+      navigate({ to: "/protocolos-iatf" });
+    } catch {
+      toast.error("Erro ao excluir protocolo.");
+    }
+  }
+
 
   if (protocoloQ.isLoading) {
     return <div className="py-20 text-center text-muted-foreground">Carregando protocolo...</div>;
