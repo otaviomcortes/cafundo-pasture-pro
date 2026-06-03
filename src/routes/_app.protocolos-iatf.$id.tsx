@@ -338,9 +338,19 @@ function ProtocoloDetalhePage() {
             {formatDate(protocolo.dataPrevistaDiagnostico)}
           </p>
         </div>
-        <Badge variant="outline" className={STATUS_PROTOCOLO_BADGE[protocolo.status]}>
-          {STATUS_PROTOCOLO_LABEL[protocolo.status]}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className={STATUS_PROTOCOLO_BADGE[protocolo.status]}>
+            {STATUS_PROTOCOLO_LABEL[protocolo.status]}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmExcluirOpen(true)}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="mr-1 h-4 w-4" /> Excluir
+          </Button>
+        </div>
       </div>
 
       {/* Contadores */}
