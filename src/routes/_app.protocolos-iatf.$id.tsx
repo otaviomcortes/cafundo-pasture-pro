@@ -486,19 +486,21 @@ function ProtocoloDetalhePage() {
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa1Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 1, Boolean(v))}
+                            onCheckedChange={(v) => toggleEtapa(pm, 1, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa2Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 2, Boolean(v))}
+                            disabled={!pm.etapa1Concluida && !pm.etapa2Concluida}
+                            onCheckedChange={(v) => toggleEtapa(pm, 2, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa3Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 3, Boolean(v))}
+                            disabled={!pm.etapa2Concluida && !pm.etapa3Concluida}
+                            onCheckedChange={(v) => toggleEtapa(pm, 3, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell>
