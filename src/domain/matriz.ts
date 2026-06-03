@@ -6,10 +6,27 @@ export type SituacaoReprodutiva =
   | "vazia"
   | "em_protocolo";
 
+export type ProprietarioMatriz = "Jean" | "Eduardo" | "Gustavo" | "Otavio";
+
+export const PROPRIETARIOS_MATRIZ: ProprietarioMatriz[] = [
+  "Jean",
+  "Eduardo",
+  "Gustavo",
+  "Otavio",
+];
+
+export const PROPRIETARIO_LABEL: Record<ProprietarioMatriz, string> = {
+  Jean: "Jean",
+  Eduardo: "Eduardo",
+  Gustavo: "Gustavo",
+  Otavio: "Otávio",
+};
+
 export interface Matriz {
   id: string;
   numeroBrinco: string;
   raca: string;
+  proprietario: ProprietarioMatriz;
   dataNascimento: string; // ISO date
   status: MatrizStatus;
   situacaoReprodutiva: SituacaoReprodutiva;
