@@ -19,6 +19,7 @@ import {
   descarteService,
   protocoloMatrizService,
   protocoloIatfService,
+  PROPRIETARIO_LABEL,
   type ProtocoloIatf,
 } from "@/domain";
 import {
