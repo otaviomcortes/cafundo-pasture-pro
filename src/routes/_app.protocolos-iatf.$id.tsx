@@ -461,14 +461,21 @@ function ProtocoloDetalhePage() {
           </p>
         </div>
         <div className="space-y-3 p-5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar matriz no protocolo (brinco)..."
-              value={buscaChecklist}
-              onChange={(e) => setBuscaChecklist(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar matriz no protocolo (brinco)..."
+                value={buscaChecklist}
+                onChange={(e) => setBuscaChecklist(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            {buscaChecklist && (
+              <Button variant="outline" onClick={() => setBuscaChecklist("")}>
+                <X className="mr-1 h-4 w-4" /> Limpar busca
+              </Button>
+            )}
           </div>
           {buscaChecklist.trim() && !brincoBuscadoExiste && (
             <div className="flex items-center gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
