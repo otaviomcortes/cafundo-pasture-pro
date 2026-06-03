@@ -42,7 +42,10 @@ import {
 import {
   matrizService,
   partoService,
+  PROPRIETARIOS_MATRIZ,
+  PROPRIETARIO_LABEL,
   type MatrizStatus,
+  type ProprietarioMatriz,
   type SituacaoReprodutiva,
 } from "@/domain";
 import { indexarPartosPorMatriz } from "@/lib/validacoes";
