@@ -66,6 +66,7 @@ export const Route = createFileRoute("/_app/matrizes/")({
 
 type StatusFiltro = MatrizStatus | "todos";
 type SituacaoFiltro = SituacaoReprodutiva | "todas";
+type ProprietarioFiltro = ProprietarioMatriz | "todos";
 
 function MatrizesPage() {
   const navigate = useNavigate();
@@ -83,6 +84,8 @@ function MatrizesPage() {
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
   const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoFiltro>("todas");
+  const [proprietarioFiltro, setProprietarioFiltro] =
+    useState<ProprietarioFiltro>("todos");
 
   const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
   const [novaOpen, setNovaOpen] = useState(false);
