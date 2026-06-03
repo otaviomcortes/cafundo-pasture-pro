@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Beef,
   Trash2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -31,6 +32,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   protocoloIatfService,
   protocoloMatrizService,
@@ -180,19 +191,34 @@ function ProtocoloDetalhePage() {
         .includes(buscaChecklist.trim().toLowerCase()),
     );
 
-  async function toggleEtapa(pmId: string, etapa: 1 | 2 | 3, value: boolean) {
+  async function toggleEtapa(
+    pm: { id: string; etapa1Concluida: boolean; etapa2Concluida: boolean; etapa3Concluida: boolean },
+    etapa: 1 | 2 | 3,
+    value: boolean,
+  ) {
+    if (value) {
+      if (etapa === 2 && !pm.etapa1Concluida) {
+        toast.error("Conclua a Etapa 1 antes de marcar a Etapa 2.");
+        return;
+      }
+      if (etapa === 3 && !pm.etapa2Concluida) {
+        toast.error("Conclua a Etapa 2 antes de marcar a Etapa 3.");
+        return;
+      }
+    }
     const patch: Record<string, unknown> = {};
+    const data = value ? new Date().toISOString() : undefined;
     if (etapa === 1) {
       patch.etapa1Concluida = value;
-      patch.etapa1Data = value ? new Date().toISOString() : undefined;
+      patch.etapa1Data = data;
     } else if (etapa === 2) {
       patch.etapa2Concluida = value;
-      patch.etapa2Data = value ? new Date().toISOString() : undefined;
+      patch.etapa2Data = data;
     } else {
       patch.etapa3Concluida = value;
-      patch.etapa3Data = value ? new Date().toISOString() : undefined;
+      patch.etapa3Data = data;
     }
-    await protocoloMatrizService.atualizar(pmId, patch);
+    await protocoloMatrizService.atualizar(pm.id, patch);
     qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
   }
 
@@ -246,6 +272,38 @@ function ProtocoloDetalhePage() {
     (p) => p.etapa1Concluida && p.etapa2Concluida && p.etapa3Concluida,
   ).length;
   const pendentes = total - todasConcluidas;
+  const prenhasNoProtocolo = participacoes.filter(
+    (p) => p.diagnosticoPrenhez === "prenha",
+  ).length;
+
+  const [confirmExcluirOpen, setConfirmExcluirOpen] = useState(false);
+
+  async function excluirProtocolo() {
+    try {
+      for (const pm of participacoes) {
+        const matriz = matrizPorId.get(pm.matrizId);
+        await protocoloMatrizService.remover(pm.id);
+        if (
+          matriz &&
+          matriz.situacaoReprodutiva === "em_protocolo" &&
+          pm.diagnosticoPrenhez !== "prenha"
+        ) {
+          await matrizService.atualizar(matriz.id, {
+            situacaoReprodutiva: "vazia",
+          });
+        }
+      }
+      await protocoloIatfService.remover(id);
+      qc.invalidateQueries({ queryKey: ["protocolosIatf"] });
+      qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Protocolo IATF excluído com sucesso.");
+      navigate({ to: "/protocolos-iatf" });
+    } catch {
+      toast.error("Erro ao excluir protocolo.");
+    }
+  }
+
 
   if (protocoloQ.isLoading) {
     return <div className="py-20 text-center text-muted-foreground">Carregando protocolo...</div>;
@@ -280,9 +338,19 @@ function ProtocoloDetalhePage() {
             {formatDate(protocolo.dataPrevistaDiagnostico)}
           </p>
         </div>
-        <Badge variant="outline" className={STATUS_PROTOCOLO_BADGE[protocolo.status]}>
-          {STATUS_PROTOCOLO_LABEL[protocolo.status]}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className={STATUS_PROTOCOLO_BADGE[protocolo.status]}>
+            {STATUS_PROTOCOLO_LABEL[protocolo.status]}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmExcluirOpen(true)}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="mr-1 h-4 w-4" /> Excluir
+          </Button>
+        </div>
       </div>
 
       {/* Contadores */}
@@ -393,14 +461,21 @@ function ProtocoloDetalhePage() {
           </p>
         </div>
         <div className="space-y-3 p-5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar matriz no protocolo (brinco)..."
-              value={buscaChecklist}
-              onChange={(e) => setBuscaChecklist(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar matriz no protocolo (brinco)..."
+                value={buscaChecklist}
+                onChange={(e) => setBuscaChecklist(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            {buscaChecklist && (
+              <Button variant="outline" onClick={() => setBuscaChecklist("")}>
+                <X className="mr-1 h-4 w-4" /> Limpar busca
+              </Button>
+            )}
           </div>
           {buscaChecklist.trim() && !brincoBuscadoExiste && (
             <div className="flex items-center gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
@@ -460,19 +535,21 @@ function ProtocoloDetalhePage() {
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa1Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 1, Boolean(v))}
+                            onCheckedChange={(v) => toggleEtapa(pm, 1, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa2Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 2, Boolean(v))}
+                            disabled={!pm.etapa1Concluida && !pm.etapa2Concluida}
+                            onCheckedChange={(v) => toggleEtapa(pm, 2, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={pm.etapa3Concluida}
-                            onCheckedChange={(v) => toggleEtapa(pm.id, 3, Boolean(v))}
+                            disabled={!pm.etapa2Concluida && !pm.etapa3Concluida}
+                            onCheckedChange={(v) => toggleEtapa(pm, 3, Boolean(v))}
                           />
                         </TableCell>
                         <TableCell>
@@ -522,6 +599,44 @@ function ProtocoloDetalhePage() {
           </div>
         </div>
       </Card>
+
+      <AlertDialog open={confirmExcluirOpen} onOpenChange={setConfirmExcluirOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Tem certeza que deseja excluir este protocolo IATF?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Protocolo:</span>{" "}
+                  <span className="font-medium text-foreground">{protocolo.nome}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Matrizes participantes:</span>{" "}
+                  <span className="font-medium text-foreground">{total}</span>
+                </div>
+                {prenhasNoProtocolo > 0 && (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-warning-foreground">
+                    Este protocolo possui diagnóstico de prenhez registrado. A
+                    exclusão removerá o protocolo, mas não apagará prenhezes já
+                    criadas.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={excluirProtocolo}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

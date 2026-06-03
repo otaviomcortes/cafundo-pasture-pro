@@ -42,7 +42,10 @@ import {
 import {
   matrizService,
   partoService,
+  PROPRIETARIOS_MATRIZ,
+  PROPRIETARIO_LABEL,
   type MatrizStatus,
+  type ProprietarioMatriz,
   type SituacaoReprodutiva,
 } from "@/domain";
 import { indexarPartosPorMatriz } from "@/lib/validacoes";
@@ -63,6 +66,7 @@ export const Route = createFileRoute("/_app/matrizes/")({
 
 type StatusFiltro = MatrizStatus | "todos";
 type SituacaoFiltro = SituacaoReprodutiva | "todas";
+type ProprietarioFiltro = ProprietarioMatriz | "todos";
 
 function MatrizesPage() {
   const navigate = useNavigate();
@@ -80,6 +84,8 @@ function MatrizesPage() {
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
   const [situacaoFiltro, setSituacaoFiltro] = useState<SituacaoFiltro>("todas");
+  const [proprietarioFiltro, setProprietarioFiltro] =
+    useState<ProprietarioFiltro>("todos");
 
   const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
   const [novaOpen, setNovaOpen] = useState(false);
@@ -109,9 +115,15 @@ function MatrizesPage() {
         m.situacaoReprodutiva !== situacaoFiltro
       )
         return false;
+      if (
+        proprietarioFiltro !== "todos" &&
+        m.proprietario !== proprietarioFiltro
+      )
+        return false;
       return true;
     });
-  }, [matrizes, busca, statusFiltro, situacaoFiltro]);
+  }, [matrizes, busca, statusFiltro, situacaoFiltro, proprietarioFiltro]);
+
 
   const cards = [
     { title: "Total", value: resumo.total, icon: Beef, tone: "primary" },
@@ -233,16 +245,34 @@ function MatrizesPage() {
               )}
             </SelectContent>
           </Select>
+          <Select
+            value={proprietarioFiltro}
+            onValueChange={(v) => setProprietarioFiltro(v as ProprietarioFiltro)}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Proprietário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos proprietários</SelectItem>
+              {PROPRIETARIOS_MATRIZ.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PROPRIETARIO_LABEL[p]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="ml-auto text-xs text-muted-foreground">
             {filtradas.length} de {matrizes.length}
           </div>
         </div>
+
 
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Brinco</TableHead>
+                <TableHead>Proprietário</TableHead>
                 <TableHead>Idade</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Situação Reprodutiva</TableHead>
@@ -254,7 +284,7 @@ function MatrizesPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Carregando matrizes...
@@ -263,7 +293,7 @@ function MatrizesPage() {
               ) : filtradas.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Nenhuma matriz encontrada com os filtros atuais.
@@ -275,6 +305,7 @@ function MatrizesPage() {
                     <TableCell className="font-medium">
                       {m.numeroBrinco}
                     </TableCell>
+                    <TableCell>{PROPRIETARIO_LABEL[m.proprietario]}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {calcularIdade(m.dataNascimento)}
                     </TableCell>

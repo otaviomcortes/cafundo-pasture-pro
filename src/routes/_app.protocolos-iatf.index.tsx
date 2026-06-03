@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Syringe,
   Activity,
@@ -10,7 +10,9 @@ import {
   Search,
   Eye,
   Pencil,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +33,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   protocoloIatfService,
   protocoloMatrizService,
+  matrizService,
   type StatusProtocoloIatf,
 } from "@/domain";
 import {
@@ -50,6 +63,7 @@ type StatusFiltro = StatusProtocoloIatf | "todos";
 
 function ProtocolosIatfPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const { data: protocolos = [], isLoading } = useQuery({
     queryKey: ["protocolosIatf"],
@@ -66,8 +80,47 @@ function ProtocolosIatfPage() {
     return m;
   }, [participacoes]);
 
+  const prenhasPorProtocolo = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of participacoes) {
+      if (p.diagnosticoPrenhez === "prenha") {
+        m.set(p.protocoloId, (m.get(p.protocoloId) ?? 0) + 1);
+      }
+    }
+    return m;
+  }, [participacoes]);
+
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
+  const [excluirId, setExcluirId] = useState<string | null>(null);
+
+  const protocoloExcluir = protocolos.find((p) => p.id === excluirId) ?? null;
+  const matrizesExcluir = excluirId ? matrizesPorProtocolo.get(excluirId) ?? 0 : 0;
+  const prenhasExcluir = excluirId ? prenhasPorProtocolo.get(excluirId) ?? 0 : 0;
+
+  async function confirmarExclusao() {
+    if (!excluirId) return;
+    try {
+      const vinculos = participacoes.filter((p) => p.protocoloId === excluirId);
+      for (const pm of vinculos) {
+        await protocoloMatrizService.remover(pm.id);
+        if (pm.diagnosticoPrenhez !== "prenha") {
+          await matrizService.atualizar(pm.matrizId, {
+            situacaoReprodutiva: "vazia",
+          });
+        }
+      }
+      await protocoloIatfService.remover(excluirId);
+      qc.invalidateQueries({ queryKey: ["protocolosIatf"] });
+      qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Protocolo IATF excluído com sucesso.");
+      setExcluirId(null);
+    } catch {
+      toast.error("Erro ao excluir protocolo.");
+    }
+  }
+
 
   const resumo = useMemo(() => {
     return {
@@ -228,7 +281,15 @@ function ProtocolosIatfPage() {
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
                         </Button>
-
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setExcluirId(p.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -238,6 +299,53 @@ function ProtocolosIatfPage() {
           </Table>
         </div>
       </Card>
+
+      <AlertDialog
+        open={excluirId !== null}
+        onOpenChange={(open) => !open && setExcluirId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Tem certeza que deseja excluir este protocolo IATF?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Protocolo:</span>{" "}
+                  <span className="font-medium text-foreground">
+                    {protocoloExcluir?.nome ?? "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">
+                    Matrizes participantes:
+                  </span>{" "}
+                  <span className="font-medium text-foreground">
+                    {matrizesExcluir}
+                  </span>
+                </div>
+                {prenhasExcluir > 0 && (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-warning-foreground">
+                    Este protocolo possui diagnóstico de prenhez registrado. A
+                    exclusão removerá o protocolo, mas não apagará prenhezes já
+                    criadas.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarExclusao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

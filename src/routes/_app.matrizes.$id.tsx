@@ -19,6 +19,7 @@ import {
   descarteService,
   protocoloMatrizService,
   protocoloIatfService,
+  PROPRIETARIO_LABEL,
   type ProtocoloIatf,
 } from "@/domain";
 import {
@@ -204,6 +205,7 @@ function MatrizDetalhePage() {
         <h2 className="font-display text-xl font-semibold">Dados da Matriz</h2>
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3 lg:grid-cols-4">
           <Info label="Brinco" value={matriz.numeroBrinco} />
+          <Info label="Proprietário" value={PROPRIETARIO_LABEL[matriz.proprietario]} />
           <Info label="Raça" value={matriz.raca} />
           <Info label="Data de nascimento" value={formatDate(matriz.dataNascimento)} />
           <Info label="Idade" value={calcularIdade(matriz.dataNascimento)} />

@@ -217,6 +217,11 @@ export const protocoloIatfService = {
       status: "finalizado",
     });
   },
+  remover: (id: string) => {
+    const idx = mockProtocolosIatf.findIndex((x) => x.id === id);
+    if (idx >= 0) mockProtocolosIatf.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
 };
 
 // ---------- Protocolo x Matriz (participações) ----------
