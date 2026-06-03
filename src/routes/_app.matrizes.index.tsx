@@ -115,9 +115,15 @@ function MatrizesPage() {
         m.situacaoReprodutiva !== situacaoFiltro
       )
         return false;
+      if (
+        proprietarioFiltro !== "todos" &&
+        m.proprietario !== proprietarioFiltro
+      )
+        return false;
       return true;
     });
-  }, [matrizes, busca, statusFiltro, situacaoFiltro]);
+  }, [matrizes, busca, statusFiltro, situacaoFiltro, proprietarioFiltro]);
+
 
   const cards = [
     { title: "Total", value: resumo.total, icon: Beef, tone: "primary" },
