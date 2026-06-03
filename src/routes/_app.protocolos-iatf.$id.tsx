@@ -599,6 +599,44 @@ function ProtocoloDetalhePage() {
           </div>
         </div>
       </Card>
+
+      <AlertDialog open={confirmExcluirOpen} onOpenChange={setConfirmExcluirOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Tem certeza que deseja excluir este protocolo IATF?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Protocolo:</span>{" "}
+                  <span className="font-medium text-foreground">{protocolo.nome}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Matrizes participantes:</span>{" "}
+                  <span className="font-medium text-foreground">{total}</span>
+                </div>
+                {prenhasNoProtocolo > 0 && (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-warning-foreground">
+                    Este protocolo possui diagnóstico de prenhez registrado. A
+                    exclusão removerá o protocolo, mas não apagará prenhezes já
+                    criadas.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={excluirProtocolo}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
