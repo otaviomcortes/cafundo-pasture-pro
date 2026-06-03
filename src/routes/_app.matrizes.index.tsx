@@ -305,6 +305,7 @@ function MatrizesPage() {
                     <TableCell className="font-medium">
                       {m.numeroBrinco}
                     </TableCell>
+                    <TableCell>{PROPRIETARIO_LABEL[m.proprietario]}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {calcularIdade(m.dataNascimento)}
                     </TableCell>
