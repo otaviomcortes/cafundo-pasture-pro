@@ -191,19 +191,34 @@ function ProtocoloDetalhePage() {
         .includes(buscaChecklist.trim().toLowerCase()),
     );
 
-  async function toggleEtapa(pmId: string, etapa: 1 | 2 | 3, value: boolean) {
+  async function toggleEtapa(
+    pm: { id: string; etapa1Concluida: boolean; etapa2Concluida: boolean; etapa3Concluida: boolean },
+    etapa: 1 | 2 | 3,
+    value: boolean,
+  ) {
+    if (value) {
+      if (etapa === 2 && !pm.etapa1Concluida) {
+        toast.error("Conclua a Etapa 1 antes de marcar a Etapa 2.");
+        return;
+      }
+      if (etapa === 3 && !pm.etapa2Concluida) {
+        toast.error("Conclua a Etapa 2 antes de marcar a Etapa 3.");
+        return;
+      }
+    }
     const patch: Record<string, unknown> = {};
+    const data = value ? new Date().toISOString() : undefined;
     if (etapa === 1) {
       patch.etapa1Concluida = value;
-      patch.etapa1Data = value ? new Date().toISOString() : undefined;
+      patch.etapa1Data = data;
     } else if (etapa === 2) {
       patch.etapa2Concluida = value;
-      patch.etapa2Data = value ? new Date().toISOString() : undefined;
+      patch.etapa2Data = data;
     } else {
       patch.etapa3Concluida = value;
-      patch.etapa3Data = value ? new Date().toISOString() : undefined;
+      patch.etapa3Data = data;
     }
-    await protocoloMatrizService.atualizar(pmId, patch);
+    await protocoloMatrizService.atualizar(pm.id, patch);
     qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
   }
 
