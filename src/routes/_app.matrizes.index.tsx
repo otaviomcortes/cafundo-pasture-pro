@@ -245,10 +245,27 @@ function MatrizesPage() {
               )}
             </SelectContent>
           </Select>
+          <Select
+            value={proprietarioFiltro}
+            onValueChange={(v) => setProprietarioFiltro(v as ProprietarioFiltro)}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Proprietário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos proprietários</SelectItem>
+              {PROPRIETARIOS_MATRIZ.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PROPRIETARIO_LABEL[p]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="ml-auto text-xs text-muted-foreground">
             {filtradas.length} de {matrizes.length}
           </div>
         </div>
+
 
         <div className="overflow-x-auto">
           <Table>
