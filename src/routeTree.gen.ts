@@ -17,12 +17,16 @@ import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
 import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
+import { Route as AppDescartesIndexRouteImport } from './routes/_app.descartes.index'
 import { Route as AppProtocolosIatfNovoRouteImport } from './routes/_app.protocolos-iatf.novo'
 import { Route as AppProtocolosIatfIdRouteImport } from './routes/_app.protocolos-iatf.$id'
 import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
+import { Route as AppDescartesNovoRouteImport } from './routes/_app.descartes.novo'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
+import { Route as AppDescartesIdIndexRouteImport } from './routes/_app.descartes.$id.index'
 import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
+import { Route as AppDescartesIdEditarRouteImport } from './routes/_app.descartes.$id.editar'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -63,6 +67,11 @@ const AppMatrizesIndexRoute = AppMatrizesIndexRouteImport.update({
   path: '/matrizes/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDescartesIndexRoute = AppDescartesIndexRouteImport.update({
+  id: '/descartes/',
+  path: '/descartes/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProtocolosIatfNovoRoute = AppProtocolosIatfNovoRouteImport.update({
   id: '/protocolos-iatf/novo',
   path: '/protocolos-iatf/novo',
@@ -83,14 +92,29 @@ const AppMatrizesIdRoute = AppMatrizesIdRouteImport.update({
   path: '/matrizes/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDescartesNovoRoute = AppDescartesNovoRouteImport.update({
+  id: '/descartes/novo',
+  path: '/descartes/novo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
   id: '/partos/$id/',
   path: '/partos/$id/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDescartesIdIndexRoute = AppDescartesIdIndexRouteImport.update({
+  id: '/descartes/$id/',
+  path: '/descartes/$id/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
   id: '/partos/$id/editar',
   path: '/partos/$id/editar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDescartesIdEditarRoute = AppDescartesIdEditarRouteImport.update({
+  id: '/descartes/$id/editar',
+  path: '/descartes/$id/editar',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -99,14 +123,18 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/prenhezes': typeof AppPrenhezesRoute
   '/relatorios': typeof AppRelatoriosRoute
+  '/descartes/novo': typeof AppDescartesNovoRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
   '/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
   '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
+  '/descartes/': typeof AppDescartesIndexRoute
   '/matrizes/': typeof AppMatrizesIndexRoute
   '/partos/': typeof AppPartosIndexRoute
   '/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
+  '/descartes/$id/editar': typeof AppDescartesIdEditarRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/descartes/$id/': typeof AppDescartesIdIndexRoute
   '/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -114,14 +142,18 @@ export interface FileRoutesByTo {
   '/prenhezes': typeof AppPrenhezesRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
+  '/descartes/novo': typeof AppDescartesNovoRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
   '/partos/novo': typeof AppPartosNovoRoute
   '/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
   '/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
+  '/descartes': typeof AppDescartesIndexRoute
   '/matrizes': typeof AppMatrizesIndexRoute
   '/partos': typeof AppPartosIndexRoute
   '/protocolos-iatf': typeof AppProtocolosIatfIndexRoute
+  '/descartes/$id/editar': typeof AppDescartesIdEditarRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/descartes/$id': typeof AppDescartesIdIndexRoute
   '/partos/$id': typeof AppPartosIdIndexRoute
 }
 export interface FileRoutesById {
@@ -131,14 +163,18 @@ export interface FileRoutesById {
   '/_app/prenhezes': typeof AppPrenhezesRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/descartes/novo': typeof AppDescartesNovoRoute
   '/_app/matrizes/$id': typeof AppMatrizesIdRoute
   '/_app/partos/novo': typeof AppPartosNovoRoute
   '/_app/protocolos-iatf/$id': typeof AppProtocolosIatfIdRoute
   '/_app/protocolos-iatf/novo': typeof AppProtocolosIatfNovoRoute
+  '/_app/descartes/': typeof AppDescartesIndexRoute
   '/_app/matrizes/': typeof AppMatrizesIndexRoute
   '/_app/partos/': typeof AppPartosIndexRoute
   '/_app/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
+  '/_app/descartes/$id/editar': typeof AppDescartesIdEditarRoute
   '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
+  '/_app/descartes/$id/': typeof AppDescartesIdIndexRoute
   '/_app/partos/$id/': typeof AppPartosIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -148,14 +184,18 @@ export interface FileRouteTypes {
     | '/login'
     | '/prenhezes'
     | '/relatorios'
+    | '/descartes/novo'
     | '/matrizes/$id'
     | '/partos/novo'
     | '/protocolos-iatf/$id'
     | '/protocolos-iatf/novo'
+    | '/descartes/'
     | '/matrizes/'
     | '/partos/'
     | '/protocolos-iatf/'
+    | '/descartes/$id/editar'
     | '/partos/$id/editar'
+    | '/descartes/$id/'
     | '/partos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -163,14 +203,18 @@ export interface FileRouteTypes {
     | '/prenhezes'
     | '/relatorios'
     | '/'
+    | '/descartes/novo'
     | '/matrizes/$id'
     | '/partos/novo'
     | '/protocolos-iatf/$id'
     | '/protocolos-iatf/novo'
+    | '/descartes'
     | '/matrizes'
     | '/partos'
     | '/protocolos-iatf'
+    | '/descartes/$id/editar'
     | '/partos/$id/editar'
+    | '/descartes/$id'
     | '/partos/$id'
   id:
     | '__root__'
@@ -179,14 +223,18 @@ export interface FileRouteTypes {
     | '/_app/prenhezes'
     | '/_app/relatorios'
     | '/_app/'
+    | '/_app/descartes/novo'
     | '/_app/matrizes/$id'
     | '/_app/partos/novo'
     | '/_app/protocolos-iatf/$id'
     | '/_app/protocolos-iatf/novo'
+    | '/_app/descartes/'
     | '/_app/matrizes/'
     | '/_app/partos/'
     | '/_app/protocolos-iatf/'
+    | '/_app/descartes/$id/editar'
     | '/_app/partos/$id/editar'
+    | '/_app/descartes/$id/'
     | '/_app/partos/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -253,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/descartes/': {
+      id: '/_app/descartes/'
+      path: '/descartes'
+      fullPath: '/descartes/'
+      preLoaderRoute: typeof AppDescartesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/protocolos-iatf/novo': {
       id: '/_app/protocolos-iatf/novo'
       path: '/protocolos-iatf/novo'
@@ -281,11 +336,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/descartes/novo': {
+      id: '/_app/descartes/novo'
+      path: '/descartes/novo'
+      fullPath: '/descartes/novo'
+      preLoaderRoute: typeof AppDescartesNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/partos/$id/': {
       id: '/_app/partos/$id/'
       path: '/partos/$id'
       fullPath: '/partos/$id/'
       preLoaderRoute: typeof AppPartosIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/descartes/$id/': {
+      id: '/_app/descartes/$id/'
+      path: '/descartes/$id'
+      fullPath: '/descartes/$id/'
+      preLoaderRoute: typeof AppDescartesIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/$id/editar': {
@@ -295,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosIdEditarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/descartes/$id/editar': {
+      id: '/_app/descartes/$id/editar'
+      path: '/descartes/$id/editar'
+      fullPath: '/descartes/$id/editar'
+      preLoaderRoute: typeof AppDescartesIdEditarRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -302,14 +378,18 @@ interface AppRouteChildren {
   AppPrenhezesRoute: typeof AppPrenhezesRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppDescartesNovoRoute: typeof AppDescartesNovoRoute
   AppMatrizesIdRoute: typeof AppMatrizesIdRoute
   AppPartosNovoRoute: typeof AppPartosNovoRoute
   AppProtocolosIatfIdRoute: typeof AppProtocolosIatfIdRoute
   AppProtocolosIatfNovoRoute: typeof AppProtocolosIatfNovoRoute
+  AppDescartesIndexRoute: typeof AppDescartesIndexRoute
   AppMatrizesIndexRoute: typeof AppMatrizesIndexRoute
   AppPartosIndexRoute: typeof AppPartosIndexRoute
   AppProtocolosIatfIndexRoute: typeof AppProtocolosIatfIndexRoute
+  AppDescartesIdEditarRoute: typeof AppDescartesIdEditarRoute
   AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
+  AppDescartesIdIndexRoute: typeof AppDescartesIdIndexRoute
   AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
 }
 
@@ -317,14 +397,18 @@ const AppRouteChildren: AppRouteChildren = {
   AppPrenhezesRoute: AppPrenhezesRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
+  AppDescartesNovoRoute: AppDescartesNovoRoute,
   AppMatrizesIdRoute: AppMatrizesIdRoute,
   AppPartosNovoRoute: AppPartosNovoRoute,
   AppProtocolosIatfIdRoute: AppProtocolosIatfIdRoute,
   AppProtocolosIatfNovoRoute: AppProtocolosIatfNovoRoute,
+  AppDescartesIndexRoute: AppDescartesIndexRoute,
   AppMatrizesIndexRoute: AppMatrizesIndexRoute,
   AppPartosIndexRoute: AppPartosIndexRoute,
   AppProtocolosIatfIndexRoute: AppProtocolosIatfIndexRoute,
+  AppDescartesIdEditarRoute: AppDescartesIdEditarRoute,
   AppPartosIdEditarRoute: AppPartosIdEditarRoute,
+  AppDescartesIdIndexRoute: AppDescartesIdIndexRoute,
   AppPartosIdIndexRoute: AppPartosIdIndexRoute,
 }
 
@@ -337,3 +421,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
