@@ -24,8 +24,8 @@ import { Route as AppPartosNovoRouteImport } from './routes/_app.partos.novo'
 import { Route as AppMatrizesIdRouteImport } from './routes/_app.matrizes.$id'
 import { Route as AppDescartesNovoRouteImport } from './routes/_app.descartes.novo'
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
-import { Route as AppDescartesIdIndexRouteImport } from './routes/_app.descartes.$id.index'
 import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
+import { Route as AppDescartesIdIndexRouteImport } from './routes/_app.descartes.$id.index'
 import { Route as AppDescartesIdEditarRouteImport } from './routes/_app.descartes.$id.editar'
 
 const LoginRoute = LoginRouteImport.update({
@@ -102,14 +102,14 @@ const AppPartosIdIndexRoute = AppPartosIdIndexRouteImport.update({
   path: '/partos/$id/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDescartesIdIndexRoute = AppDescartesIdIndexRouteImport.update({
-  id: '/descartes/$id/',
-  path: '/descartes/$id/',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
   id: '/partos/$id/editar',
   path: '/partos/$id/editar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDescartesIdIndexRoute = AppDescartesIdIndexRouteImport.update({
+  id: '/descartes/$id/',
+  path: '/descartes/$id/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDescartesIdEditarRoute = AppDescartesIdEditarRouteImport.update({
@@ -280,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPrenhezesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/descartes/': {
+      id: '/_app/descartes/'
+      path: '/descartes'
+      fullPath: '/descartes/'
+      preLoaderRoute: typeof AppDescartesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/protocolos-iatf/': {
       id: '/_app/protocolos-iatf/'
       path: '/protocolos-iatf'
@@ -301,11 +308,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/descartes/': {
-      id: '/_app/descartes/'
-      path: '/descartes'
-      fullPath: '/descartes/'
-      preLoaderRoute: typeof AppDescartesIndexRouteImport
+    '/_app/descartes/novo': {
+      id: '/_app/descartes/novo'
+      path: '/descartes/novo'
+      fullPath: '/descartes/novo'
+      preLoaderRoute: typeof AppDescartesNovoRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/protocolos-iatf/novo': {
@@ -336,11 +343,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatrizesIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/descartes/novo': {
-      id: '/_app/descartes/novo'
-      path: '/descartes/novo'
-      fullPath: '/descartes/novo'
-      preLoaderRoute: typeof AppDescartesNovoRouteImport
+    '/_app/descartes/$id/': {
+      id: '/_app/descartes/$id/'
+      path: '/descartes/$id'
+      fullPath: '/descartes/$id/'
+      preLoaderRoute: typeof AppDescartesIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/$id/': {
@@ -350,11 +357,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/descartes/$id/': {
-      id: '/_app/descartes/$id/'
-      path: '/descartes/$id'
-      fullPath: '/descartes/$id/'
-      preLoaderRoute: typeof AppDescartesIdIndexRouteImport
+    '/_app/descartes/$id/editar': {
+      id: '/_app/descartes/$id/editar'
+      path: '/descartes/$id/editar'
+      fullPath: '/descartes/$id/editar'
+      preLoaderRoute: typeof AppDescartesIdEditarRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/partos/$id/editar': {
@@ -362,13 +369,6 @@ declare module '@tanstack/react-router' {
       path: '/partos/$id/editar'
       fullPath: '/partos/$id/editar'
       preLoaderRoute: typeof AppPartosIdEditarRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/descartes/$id/editar': {
-      id: '/_app/descartes/$id/editar'
-      path: '/descartes/$id/editar'
-      fullPath: '/descartes/$id/editar'
-      preLoaderRoute: typeof AppDescartesIdEditarRouteImport
       parentRoute: typeof AppRoute
     }
   }
