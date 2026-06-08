@@ -60,20 +60,10 @@ const STATUS_PRENHEZ_BADGE: Record<string, string> = {
   perdida: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
-const MOTIVO_DESCARTE_LABEL: Record<string, string> = {
-  idade: "Idade",
-  falha_reprodutiva: "Falha reprodutiva",
-  problema_sanitario: "Problema sanitário",
-  problema_locomotor: "Problema locomotor",
-  temperamento: "Temperamento",
-  outros: "Outros",
-};
-
-const DESTINO_DESCARTE_LABEL: Record<string, string> = {
-  frigorifico: "Frigorífico",
-  leilao: "Leilão",
-  venda_direta: "Venda direta",
-};
+import {
+  MOTIVO_DESCARTE_LABEL,
+  DESTINO_DESCARTE_LABEL,
+} from "@/lib/descarteUi";
 
 const DIAGNOSTICO_LABEL: Record<string, string> = {
   prenha: "Prenha",

@@ -1,10 +1,12 @@
 export type MotivoDescarte =
+  | "vazia"
+  | "aborto"
+  | "baixo_desempenho_reprodutivo"
+  | "baixo_escore_visual"
+  | "dificuldade_manejo"
   | "idade"
-  | "falha_reprodutiva"
   | "problema_sanitario"
-  | "problema_locomotor"
-  | "temperamento"
-  | "outros";
+  | "outro";
 
 export type DestinoDescarte = "frigorifico" | "leilao" | "venda_direta";
 
@@ -18,16 +20,22 @@ export interface Descarte {
   observacoes?: string;
 }
 
-const MOTIVOS: MotivoDescarte[] = [
+export const MOTIVOS_DESCARTE: MotivoDescarte[] = [
+  "vazia",
+  "aborto",
+  "baixo_desempenho_reprodutivo",
+  "baixo_escore_visual",
+  "dificuldade_manejo",
   "idade",
-  "falha_reprodutiva",
   "problema_sanitario",
-  "problema_locomotor",
-  "temperamento",
-  "outros",
+  "outro",
 ];
 
-const DESTINOS: DestinoDescarte[] = ["frigorifico", "leilao", "venda_direta"];
+export const DESTINOS_DESCARTE: DestinoDescarte[] = [
+  "frigorifico",
+  "leilao",
+  "venda_direta",
+];
 
 function isoDaysAgo(days: number): string {
   const d = new Date();
@@ -43,9 +51,9 @@ function gerarDescartes(qtd: number): Descarte[] {
       id: `descarte-${i}`,
       matrizId: `matriz-${185 + i}`,
       dataDescarte: isoDaysAgo(i * 25),
-      motivo: MOTIVOS[i % MOTIVOS.length],
+      motivo: MOTIVOS_DESCARTE[i % MOTIVOS_DESCARTE.length],
       peso: 420 + ((i * 7) % 120),
-      destino: DESTINOS[i % DESTINOS.length],
+      destino: DESTINOS_DESCARTE[i % DESTINOS_DESCARTE.length],
       observacoes: undefined,
     });
   }

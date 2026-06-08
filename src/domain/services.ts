@@ -139,16 +139,21 @@ export const descarteService = {
     delay<Descarte | undefined>(mockDescartes.find((d) => d.id === id)),
   listarPorMatriz: (matrizId: string) =>
     delay<Descarte[]>(mockDescartes.filter((d) => d.matrizId === matrizId)),
-  criar: (input: Omit<Descarte, "id">) =>
-    delay<Descarte>({ ...input, id: nextId("descarte") }),
-  atualizar: (id: string, patch: Partial<Omit<Descarte, "id">>) =>
-    delay<Descarte | undefined>(
-      (() => {
-        const d = mockDescartes.find((x) => x.id === id);
-        return d ? { ...d, ...patch } : undefined;
-      })(),
-    ),
-  remover: (id: string) => delay<{ id: string; removido: true }>({ id, removido: true }),
+  criar: (input: Omit<Descarte, "id">) => {
+    const novo: Descarte = { ...input, id: nextId("descarte") };
+    mockDescartes.push(novo);
+    return delay<Descarte>(novo);
+  },
+  atualizar: (id: string, patch: Partial<Omit<Descarte, "id">>) => {
+    const d = mockDescartes.find((x) => x.id === id);
+    if (d) Object.assign(d, patch);
+    return delay<Descarte | undefined>(d);
+  },
+  remover: (id: string) => {
+    const idx = mockDescartes.findIndex((x) => x.id === id);
+    if (idx >= 0) mockDescartes.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
 };
 
 // ---------- Estações de Monta ----------
