@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,15 @@ import {
   TrendingUp,
   ArrowRight,
 } from "lucide-react";
-import { dashboardStats, ultimosPartos, protocolosAtivos } from "@/lib/mockData";
+import {
+  matrizService,
+  partoService,
+  protocoloIatfService,
+  protocoloMatrizService,
+  descarteService,
+} from "@/domain/services";
+import { SEXO_LABEL } from "@/lib/partoUi";
+import { STATUS_PROTOCOLO_LABEL, STATUS_PROTOCOLO_BADGE } from "@/lib/protocoloIatfUi";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({
@@ -28,15 +37,6 @@ export const Route = createFileRoute("/_app/")({
   }),
   component: Dashboard,
 });
-
-const statCards = [
-  { key: "matrizesAtivas", title: "Matrizes Ativas", icon: Beef, value: dashboardStats.matrizesAtivas, trend: "+12 no mês", tone: "primary" },
-  { key: "matrizesPrenhas", title: "Matrizes Prenhas", icon: HeartPulse, value: dashboardStats.matrizesPrenhas, trend: "61% do rebanho", tone: "success" },
-  { key: "matrizesVazias", title: "Matrizes Vazias", icon: HeartCrack, value: dashboardStats.matrizesVazias, trend: "26% do rebanho", tone: "warning" },
-  { key: "matrizesEmProtocolo", title: "Em Protocolo IATF", icon: Syringe, value: dashboardStats.matrizesEmProtocolo, trend: "4 lotes ativos", tone: "accent" },
-  { key: "partos", title: "Partos no Ano", icon: Baby, value: dashboardStats.partosNoAno, trend: "+18% vs 2025", tone: "primary" },
-  { key: "descartes", title: "Descartes no Ano", icon: PackageMinus, value: dashboardStats.descartesNoAno, trend: "-8% vs 2025", tone: "destructive" },
-] as const;
 
 const toneClasses: Record<string, string> = {
   primary: "bg-primary/10 text-primary",
@@ -46,24 +46,80 @@ const toneClasses: Record<string, string> = {
   destructive: "bg-destructive/10 text-destructive",
 };
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
+
 function Dashboard() {
+  const { data: matrizes = [] } = useQuery({
+    queryKey: ["matrizes"],
+    queryFn: () => matrizService.listar(),
+  });
+  const { data: partos = [] } = useQuery({
+    queryKey: ["partos"],
+    queryFn: () => partoService.listar(),
+  });
+  const { data: protocolos = [] } = useQuery({
+    queryKey: ["protocolos-iatf"],
+    queryFn: () => protocoloIatfService.listar(),
+  });
+  const { data: participacoes = [] } = useQuery({
+    queryKey: ["protocolos-matrizes"],
+    queryFn: () => protocoloMatrizService.listar(),
+  });
+  const { data: descartes = [] } = useQuery({
+    queryKey: ["descartes"],
+    queryFn: () => descarteService.listar(),
+  });
+
+  const ativas = matrizes.filter((m) => m.status === "ativa");
+  const prenhas = ativas.filter((m) => m.situacaoReprodutiva === "prenha").length;
+  const vazias = ativas.filter((m) => m.situacaoReprodutiva === "vazia").length;
+  const emProtocolo = ativas.filter((m) => m.situacaoReprodutiva === "em_protocolo").length;
+
+  const anoAtual = new Date().getFullYear();
+  const partosAno = partos.filter((p) => new Date(p.dataParto).getFullYear() === anoAtual).length;
+  const descartesAno = descartes.filter((d) => new Date(d.dataDescarte).getFullYear() === anoAtual).length;
+
+  const totalAtivas = ativas.length;
+  const pct = (n: number) =>
+    totalAtivas === 0 ? "0%" : `${Math.round((n / totalAtivas) * 100)}% do rebanho`;
+
+  const statCards = [
+    { key: "matrizesAtivas", title: "Matrizes Ativas", icon: Beef, value: totalAtivas, trend: `${matrizes.length} no total`, tone: "primary" },
+    { key: "matrizesPrenhas", title: "Matrizes Prenhas", icon: HeartPulse, value: prenhas, trend: pct(prenhas), tone: "success" },
+    { key: "matrizesVazias", title: "Matrizes Vazias", icon: HeartCrack, value: vazias, trend: pct(vazias), tone: "warning" },
+    { key: "matrizesEmProtocolo", title: "Em Protocolo IATF", icon: Syringe, value: emProtocolo, trend: pct(emProtocolo), tone: "accent" },
+    { key: "partos", title: "Partos no Ano", icon: Baby, value: partosAno, trend: `${partos.length} registrados`, tone: "primary" },
+    { key: "descartes", title: "Descartes no Ano", icon: PackageMinus, value: descartesAno, trend: `${descartes.length} registrados`, tone: "destructive" },
+  ];
+
+  const ultimosPartos = [...partos]
+    .sort((a, b) => new Date(b.dataParto).getTime() - new Date(a.dataParto).getTime())
+    .slice(0, 5);
+
+  const protocolosEmAndamento = protocolos.filter((p) => p.status === "em_andamento");
+
+  const matrizesById = new Map(matrizes.map((m) => [m.id, m]));
+  const countMatrizesProtocolo = (protocoloId: string) =>
+    participacoes.filter((pm) => pm.protocoloId === protocoloId).length;
+
   return (
     <div className="space-y-6">
-      {/* Page heading */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Visão geral da fazenda</p>
           <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">Exportar</Button>
-          <Button size="sm">
-            Nova matriz <ArrowRight className="ml-1 h-4 w-4" />
+          <Button asChild size="sm">
+            <Link to="/matrizes">
+              Ir para matrizes <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </div>
 
-      {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((c) => (
           <Card key={c.key} className="p-5 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]">
@@ -84,16 +140,17 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* Tables */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-5 py-4">
             <div>
               <h3 className="font-display text-lg font-semibold">Últimos Partos</h3>
-              <p className="text-xs text-muted-foreground">Registros mais recentes</p>
+              <p className="text-xs text-muted-foreground">5 registros mais recentes</p>
             </div>
-            <Button variant="ghost" size="sm" className="text-accent">
-              Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            <Button asChild variant="ghost" size="sm" className="text-accent">
+              <Link to="/partos">
+                Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
             </Button>
           </div>
           <Table>
@@ -103,26 +160,27 @@ function Dashboard() {
                 <TableHead>Data</TableHead>
                 <TableHead>Sexo</TableHead>
                 <TableHead>Raça do Bezerro</TableHead>
-                <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ultimosPartos.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.brinco}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.data}</TableCell>
-                  <TableCell>{p.sexo}</TableCell>
-                  <TableCell>{p.raca}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge
-                      variant="secondary"
-                      className={p.status === "Saudável" ? "bg-success/15 text-success" : "bg-warning/20 text-warning-foreground"}
-                    >
-                      {p.status}
-                    </Badge>
+              {ultimosPartos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    Nenhum parto registrado.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
+              {ultimosPartos.map((p) => {
+                const m = matrizesById.get(p.matrizId);
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{m ? `#${m.numeroBrinco}` : "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(p.dataParto)}</TableCell>
+                    <TableCell>{SEXO_LABEL[p.sexoBezerro]}</TableCell>
+                    <TableCell>{p.racaBezerro}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Card>
@@ -133,31 +191,37 @@ function Dashboard() {
               <h3 className="font-display text-lg font-semibold">Protocolos Ativos</h3>
               <p className="text-xs text-muted-foreground">IATF em andamento</p>
             </div>
-            <Button variant="ghost" size="sm" className="text-accent">
-              Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            <Button asChild variant="ghost" size="sm" className="text-accent">
+              <Link to="/protocolos-iatf">
+                Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Lote</TableHead>
-                <TableHead>Início</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Etapa 1 (D0)</TableHead>
                 <TableHead className="text-center">Matrizes</TableHead>
-                <TableHead>Etapa</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {protocolosAtivos.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    <div className="font-medium">{p.nome}</div>
-                    <div className="text-xs text-muted-foreground">{p.responsavel}</div>
+              {protocolosEmAndamento.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    Nenhum protocolo em andamento.
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{p.inicio}</TableCell>
-                  <TableCell className="text-center font-medium">{p.matrizes}</TableCell>
+                </TableRow>
+              )}
+              {protocolosEmAndamento.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.nome}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(p.dataEtapa1)}</TableCell>
+                  <TableCell className="text-center font-medium">{countMatrizesProtocolo(p.id)}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="border-accent/40 text-accent">
-                      {p.etapa}
+                    <Badge variant="outline" className={STATUS_PROTOCOLO_BADGE[p.status]}>
+                      {STATUS_PROTOCOLO_LABEL[p.status]}
                     </Badge>
                   </TableCell>
                 </TableRow>
