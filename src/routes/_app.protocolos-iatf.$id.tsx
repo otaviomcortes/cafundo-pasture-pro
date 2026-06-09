@@ -610,7 +610,13 @@ function ProtocoloDetalhePage() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => removerMatriz(pm.id, pm.matrizId)}
+                            onClick={() =>
+                              setConfirmRemoverMatriz({
+                                pmId: pm.id,
+                                matrizId: pm.matrizId,
+                                brinco: matriz?.numeroBrinco ?? "—",
+                              })
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Remover</span>
