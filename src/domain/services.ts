@@ -156,45 +156,12 @@ export const descarteService = {
   },
 };
 
-// ---------- Estações de Monta ----------
-export const estacaoMontaService = {
-  listar: () => delay<EstacaoMonta[]>(mockEstacoesMonta),
-  buscarPorId: (id: string) =>
-    delay<EstacaoMonta | undefined>(
-      mockEstacoesMonta.find((e) => e.id === id),
-    ),
-  listarAtivas: () =>
-    delay<EstacaoMonta[]>(
-      mockEstacoesMonta.filter(
-        (e) => e.status === "em_andamento" || e.status === "planejada",
-      ),
-    ),
-  criar: (input: Omit<EstacaoMonta, "id">) =>
-    delay<EstacaoMonta>({ ...input, id: nextId("estacao") }),
-  atualizar: (id: string, patch: Partial<Omit<EstacaoMonta, "id">>) =>
-    delay<EstacaoMonta | undefined>(
-      (() => {
-        const e = mockEstacoesMonta.find((x) => x.id === id);
-        return e ? { ...e, ...patch } : undefined;
-      })(),
-    ),
-  encerrar: (id: string) =>
-    delay<{ id: string; status: EstacaoMonta["status"] }>({
-      id,
-      status: "encerrada",
-    }),
-};
-
 // ---------- Protocolos IATF ----------
 export const protocoloIatfService = {
   listar: () => delay<ProtocoloIatf[]>(mockProtocolosIatf),
   buscarPorId: (id: string) =>
     delay<ProtocoloIatf | undefined>(
       mockProtocolosIatf.find((p) => p.id === id),
-    ),
-  listarPorEstacao: (estacaoMontaId: string) =>
-    delay<ProtocoloIatf[]>(
-      mockProtocolosIatf.filter((p) => p.estacaoMontaId === estacaoMontaId),
     ),
   listarAtivos: () =>
     delay<ProtocoloIatf[]>(
