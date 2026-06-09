@@ -2,7 +2,7 @@ import { mockMatrizes, type Matriz, type MatrizInput } from "./matriz";
 import { mockPartos, type Parto } from "./parto";
 import { mockPrenhezes, type Prenhez, type PrenhezInput } from "./prenhez";
 import { mockDescartes, type Descarte } from "./descarte";
-import { mockEstacoesMonta, type EstacaoMonta } from "./estacaoMonta";
+
 import { mockProtocolosIatf, type ProtocoloIatf } from "./protocoloIatf";
 import {
   mockProtocolosMatrizes,
