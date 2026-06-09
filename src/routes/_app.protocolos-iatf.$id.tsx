@@ -218,6 +218,14 @@ function ProtocoloDetalhePage() {
       patch.etapa3Concluida = value;
       patch.etapa3Data = data;
     }
+    // Atualização otimista local para refletir o checkbox imediatamente.
+    const key = ["protocolosMatriz", "protocolo", id] as const;
+    qc.setQueryData<typeof participacoes>(key, (prev) =>
+      (prev ?? []).map((x) => (x.id === pm.id ? { ...x, ...patch } : x)),
+    );
+    qc.setQueryData<typeof todasParticipacoes>(["protocolosMatriz"], (prev) =>
+      (prev ?? []).map((x) => (x.id === pm.id ? { ...x, ...patch } : x)),
+    );
     await protocoloMatrizService.atualizar(pm.id, patch);
     qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
   }
@@ -227,9 +235,18 @@ function ProtocoloDetalhePage() {
     matrizId: string,
     valor: DiagnosticoPrenhez,
   ) {
+    const dataDiag = valor === "nao_avaliada" ? undefined : new Date().toISOString();
+    const key = ["protocolosMatriz", "protocolo", id] as const;
+    qc.setQueryData<typeof participacoes>(key, (prev) =>
+      (prev ?? []).map((x) =>
+        x.id === pmId
+          ? { ...x, diagnosticoPrenhez: valor, dataDiagnostico: dataDiag }
+          : x,
+      ),
+    );
     await protocoloMatrizService.atualizar(pmId, {
       diagnosticoPrenhez: valor,
-      dataDiagnostico: valor === "nao_avaliada" ? undefined : new Date().toISOString(),
+      dataDiagnostico: dataDiag,
     });
     if (valor === "prenha") {
       await prenhezService.criar({
@@ -251,8 +268,15 @@ function ProtocoloDetalhePage() {
     qc.invalidateQueries({ queryKey: ["prenhezes"] });
   }
 
-  async function removerMatriz(pmId: string, matrizId: string) {
-    if (!confirm("Remover esta matriz do protocolo?")) return;
+  const [confirmRemoverMatriz, setConfirmRemoverMatriz] = useState<{
+    pmId: string;
+    matrizId: string;
+    brinco: string;
+  } | null>(null);
+
+  async function confirmarRemoverMatriz() {
+    if (!confirmRemoverMatriz) return;
+    const { pmId, matrizId } = confirmRemoverMatriz;
     await protocoloMatrizService.remover(pmId);
     const matriz = matrizPorId.get(matrizId);
     if (matriz && matriz.situacaoReprodutiva === "em_protocolo") {
@@ -261,7 +285,9 @@ function ProtocoloDetalhePage() {
     qc.invalidateQueries({ queryKey: ["protocolosMatriz"] });
     qc.invalidateQueries({ queryKey: ["matrizes"] });
     toast.success("Matriz removida do protocolo.");
+    setConfirmRemoverMatriz(null);
   }
+
 
   // ----- Contadores -----
   const total = participacoes.length;
