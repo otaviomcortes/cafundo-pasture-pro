@@ -13,7 +13,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
-import { Route as AppPrenhezesRouteImport } from './routes/_app.prenhezes'
 import { Route as AppProtocolosIatfIndexRouteImport } from './routes/_app.protocolos-iatf.index'
 import { Route as AppPartosIndexRouteImport } from './routes/_app.partos.index'
 import { Route as AppMatrizesIndexRouteImport } from './routes/_app.matrizes.index'
@@ -45,11 +44,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPrenhezesRoute = AppPrenhezesRouteImport.update({
-  id: '/prenhezes',
-  path: '/prenhezes',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProtocolosIatfIndexRoute = AppProtocolosIatfIndexRouteImport.update({
@@ -121,7 +115,6 @@ const AppDescartesIdEditarRoute = AppDescartesIdEditarRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/prenhezes': typeof AppPrenhezesRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/descartes/novo': typeof AppDescartesNovoRoute
   '/matrizes/$id': typeof AppMatrizesIdRoute
@@ -139,7 +132,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/prenhezes': typeof AppPrenhezesRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/': typeof AppIndexRoute
   '/descartes/novo': typeof AppDescartesNovoRoute
@@ -160,7 +152,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/_app/prenhezes': typeof AppPrenhezesRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/descartes/novo': typeof AppDescartesNovoRoute
@@ -182,7 +173,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/prenhezes'
     | '/relatorios'
     | '/descartes/novo'
     | '/matrizes/$id'
@@ -200,7 +190,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/prenhezes'
     | '/relatorios'
     | '/'
     | '/descartes/novo'
@@ -220,7 +209,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
-    | '/_app/prenhezes'
     | '/_app/relatorios'
     | '/_app/'
     | '/_app/descartes/novo'
@@ -271,13 +259,6 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AppRelatoriosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/prenhezes': {
-      id: '/_app/prenhezes'
-      path: '/prenhezes'
-      fullPath: '/prenhezes'
-      preLoaderRoute: typeof AppPrenhezesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/protocolos-iatf/': {
@@ -375,7 +356,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppPrenhezesRoute: typeof AppPrenhezesRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDescartesNovoRoute: typeof AppDescartesNovoRoute
@@ -394,7 +374,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppPrenhezesRoute: AppPrenhezesRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppIndexRoute: AppIndexRoute,
   AppDescartesNovoRoute: AppDescartesNovoRoute,
@@ -421,3 +400,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
