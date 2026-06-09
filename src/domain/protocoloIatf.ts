@@ -7,7 +7,6 @@ export type StatusProtocoloIatf =
 export interface ProtocoloIatf {
   id: string;
   nome: string;
-  estacaoMontaId: string;
   dataEtapa1: string; // D0 - Implante
   dataEtapa2: string; // D8 - Retirada
   dataEtapa3: string; // D10/D11 - IA
@@ -23,7 +22,6 @@ export const mockProtocolosIatf: ProtocoloIatf[] = [
   {
     id: "protocolo-1",
     nome: "IATF Lote Sede",
-    estacaoMontaId: "estacao-meio-2026",
     dataEtapa1: "2026-05-15T00:00:00.000Z",
     dataEtapa2: "2026-05-23T00:00:00.000Z",
     dataEtapa3: "2026-05-25T00:00:00.000Z",
@@ -37,7 +35,6 @@ export const mockProtocolosIatf: ProtocoloIatf[] = [
   {
     id: "protocolo-2",
     nome: "IATF Lote Currais",
-    estacaoMontaId: "estacao-meio-2026",
     dataEtapa1: "2026-05-18T00:00:00.000Z",
     dataEtapa2: "2026-05-26T00:00:00.000Z",
     dataEtapa3: "2026-05-28T00:00:00.000Z",
@@ -49,7 +46,6 @@ export const mockProtocolosIatf: ProtocoloIatf[] = [
   {
     id: "protocolo-3",
     nome: "Ressincronização Lote Sede",
-    estacaoMontaId: "estacao-meio-2026",
     dataEtapa1: "2026-05-10T00:00:00.000Z",
     dataEtapa2: "2026-05-18T00:00:00.000Z",
     dataEtapa3: "2026-05-21T00:00:00.000Z",
@@ -63,7 +59,6 @@ export const mockProtocolosIatf: ProtocoloIatf[] = [
   {
     id: "protocolo-4",
     nome: "IATF Lote Várzea",
-    estacaoMontaId: "estacao-2026",
     dataEtapa1: "2026-10-05T00:00:00.000Z",
     dataEtapa2: "2026-10-13T00:00:00.000Z",
     dataEtapa3: "2026-10-15T00:00:00.000Z",

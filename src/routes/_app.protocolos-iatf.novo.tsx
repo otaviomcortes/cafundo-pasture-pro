@@ -42,7 +42,7 @@ function NovoProtocoloPage() {
     mutationFn: () =>
       protocoloIatfService.criar({
         nome: nome.trim(),
-        estacaoMontaId: "",
+        
         dataEtapa1: toIso(d1),
         dataEtapa2: toIso(d2),
         dataEtapa3: toIso(d3),

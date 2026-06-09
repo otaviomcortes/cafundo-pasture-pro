@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Beef,
   Syringe,
-  HeartPulse,
   Baby,
   PackageMinus,
   FileBarChart,
@@ -26,7 +25,6 @@ const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Matrizes", url: "/matrizes", icon: Beef },
   { title: "Protocolos IATF", url: "/protocolos-iatf", icon: Syringe },
-  { title: "Prenhezes", url: "/prenhezes", icon: HeartPulse },
   { title: "Partos", url: "/partos", icon: Baby },
   { title: "Descartes", url: "/descartes", icon: PackageMinus },
 ];
