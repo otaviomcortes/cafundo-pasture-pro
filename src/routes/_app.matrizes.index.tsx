@@ -98,32 +98,6 @@ function MatrizesPage() {
     onError: () => toast.error("Não foi possível cadastrar a matriz."),
   });
 
-  const atualizarMut = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: MatrizInput }) =>
-      matrizService.atualizar(id, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["matrizes"] });
-      toast.success("Matriz atualizada com sucesso.");
-      setEditando(null);
-    },
-    onError: () => toast.error("Não foi possível atualizar a matriz."),
-  });
-
-  const resumo = useMemo(() => {
-    const total = matrizes.length;
-    const ativas = matrizes.filter((m) => m.status === "ativa");
-    return {
-      total,
-      ativas: ativas.length,
-      prenhas: ativas.filter((m) => m.situacaoReprodutiva === "prenha").length,
-      vazias: ativas.filter((m) => m.situacaoReprodutiva === "vazia").length,
-      emProtocolo: ativas.filter(
-        (m) => m.situacaoReprodutiva === "em_protocolo",
-      ).length,
-      descartadas: matrizes.filter((m) => m.status === "descartada").length,
-    };
-  }, [matrizes]);
-
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return matrizes.filter((m) => {
@@ -142,44 +116,6 @@ function MatrizesPage() {
       return true;
     });
   }, [matrizes, busca, statusFiltro, situacaoFiltro, proprietarioFiltro]);
-
-
-  const cards = [
-    { title: "Total", value: resumo.total, icon: Beef, tone: "primary" },
-    { title: "Ativas", value: resumo.ativas, icon: Beef, tone: "success" },
-    {
-      title: "Prenhas",
-      value: resumo.prenhas,
-      icon: HeartPulse,
-      tone: "success",
-    },
-    {
-      title: "Vazias",
-      value: resumo.vazias,
-      icon: HeartCrack,
-      tone: "warning",
-    },
-    {
-      title: "Em protocolo",
-      value: resumo.emProtocolo,
-      icon: Syringe,
-      tone: "info",
-    },
-    {
-      title: "Descartadas",
-      value: resumo.descartadas,
-      icon: PackageMinus,
-      tone: "destructive",
-    },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-    destructive: "bg-destructive/10 text-destructive",
-  };
 
   return (
     <div className="space-y-6">
