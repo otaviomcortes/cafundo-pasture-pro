@@ -98,6 +98,18 @@ function MatrizesPage() {
     onError: () => toast.error("Não foi possível cadastrar a matriz."),
   });
 
+  const atualizarMut = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: MatrizInput }) =>
+      matrizService.atualizar(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Matriz atualizada com sucesso.");
+      setEditando(null);
+    },
+    onError: () => toast.error("Não foi possível atualizar a matriz."),
+  });
+
+
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return matrizes.filter((m) => {
