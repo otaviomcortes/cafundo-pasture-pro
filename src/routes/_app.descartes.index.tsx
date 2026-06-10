@@ -113,28 +113,6 @@ function DescartesPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Card
-            key={c.title}
-            className="p-4 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]"
-          >
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClasses[c.tone]}`}
-            >
-              <c.icon className="h-4 w-4" />
-            </div>
-            <p className="mt-3 text-xs font-medium text-muted-foreground">
-              {c.title}
-            </p>
-            <p className="font-display text-2xl font-bold tracking-tight">
-              {typeof c.value === "number"
-                ? c.value.toLocaleString("pt-BR")
-                : c.value}
-            </p>
-          </Card>
-        ))}
-      </div>
 
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
