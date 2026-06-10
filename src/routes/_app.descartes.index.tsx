@@ -68,31 +68,6 @@ function DescartesPage() {
     useState<ProprietarioFiltro>("todos");
   const [periodoFiltro, setPeriodoFiltro] = useState<PeriodoFiltro>("todos");
 
-  const resumo = useMemo(() => {
-    const agora = Date.now();
-    const umAnoMs = 365 * 24 * 60 * 60 * 1000;
-    const noAno = descartes.filter(
-      (d) => agora - new Date(d.dataDescarte).getTime() <= umAnoMs,
-    );
-    const pesoMedio =
-      descartes.length === 0
-        ? 0
-        : Math.round(
-            descartes.reduce((s, d) => s + d.peso, 0) / descartes.length,
-          );
-    const ordenados = [...descartes].sort(
-      (a, b) =>
-        new Date(b.dataDescarte).getTime() -
-        new Date(a.dataDescarte).getTime(),
-    );
-    return {
-      ano: noAno.length,
-      pesoMedio,
-      ultimo: ordenados[0]?.dataDescarte,
-      total: descartes.length,
-    };
-  }, [descartes]);
-
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     const agora = Date.now();
@@ -123,40 +98,6 @@ function DescartesPage() {
           new Date(a.dataDescarte).getTime(),
       );
   }, [descartes, motivoFiltro, proprietarioFiltro, periodoFiltro, busca, matrizPorId]);
-
-  const cards = [
-    {
-      title: "Descartes no ano",
-      value: resumo.ano,
-      icon: PackageMinus,
-      tone: "destructive",
-    },
-    {
-      title: "Peso médio (kg)",
-      value: resumo.pesoMedio,
-      icon: Scale,
-      tone: "primary",
-    },
-    {
-      title: "Último descarte",
-      value: resumo.ultimo ? formatDate(resumo.ultimo) : "—",
-      icon: CalendarClock,
-      tone: "warning",
-    },
-    {
-      title: "Matrizes descartadas",
-      value: resumo.total,
-      icon: Beef,
-      tone: "info",
-    },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-    destructive: "bg-destructive/10 text-destructive",
-  };
 
   return (
     <div className="space-y-6">
