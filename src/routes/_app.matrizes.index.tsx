@@ -375,7 +375,7 @@ function MatrizesPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setEditPlaceholderOpen(true)}
+                          onClick={() => setEditando(m)}
                         >
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
