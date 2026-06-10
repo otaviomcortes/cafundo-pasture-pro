@@ -2,17 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Beef,
-  HeartPulse,
-  HeartCrack,
-  Syringe,
-  PackageMinus,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-} from "lucide-react";
+import { Plus, Search, Eye, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,20 +109,6 @@ function MatrizesPage() {
     onError: () => toast.error("Não foi possível atualizar a matriz."),
   });
 
-  const resumo = useMemo(() => {
-    const total = matrizes.length;
-    const ativas = matrizes.filter((m) => m.status === "ativa");
-    return {
-      total,
-      ativas: ativas.length,
-      prenhas: ativas.filter((m) => m.situacaoReprodutiva === "prenha").length,
-      vazias: ativas.filter((m) => m.situacaoReprodutiva === "vazia").length,
-      emProtocolo: ativas.filter(
-        (m) => m.situacaoReprodutiva === "em_protocolo",
-      ).length,
-      descartadas: matrizes.filter((m) => m.status === "descartada").length,
-    };
-  }, [matrizes]);
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -153,44 +129,6 @@ function MatrizesPage() {
     });
   }, [matrizes, busca, statusFiltro, situacaoFiltro, proprietarioFiltro]);
 
-
-  const cards = [
-    { title: "Total", value: resumo.total, icon: Beef, tone: "primary" },
-    { title: "Ativas", value: resumo.ativas, icon: Beef, tone: "success" },
-    {
-      title: "Prenhas",
-      value: resumo.prenhas,
-      icon: HeartPulse,
-      tone: "success",
-    },
-    {
-      title: "Vazias",
-      value: resumo.vazias,
-      icon: HeartCrack,
-      tone: "warning",
-    },
-    {
-      title: "Em protocolo",
-      value: resumo.emProtocolo,
-      icon: Syringe,
-      tone: "info",
-    },
-    {
-      title: "Descartadas",
-      value: resumo.descartadas,
-      icon: PackageMinus,
-      tone: "destructive",
-    },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-    destructive: "bg-destructive/10 text-destructive",
-  };
-
   return (
     <div className="space-y-6">
       {/* Heading */}
@@ -204,28 +142,6 @@ function MatrizesPage() {
         <Button onClick={() => setNovaOpen(true)}>
           <Plus className="mr-1 h-4 w-4" /> Nova Matriz
         </Button>
-      </div>
-
-      {/* Resumo */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {cards.map((c) => (
-          <Card
-            key={c.title}
-            className="p-4 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]"
-          >
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClasses[c.tone]}`}
-            >
-              <c.icon className="h-4 w-4" />
-            </div>
-            <p className="mt-3 text-xs font-medium text-muted-foreground">
-              {c.title}
-            </p>
-            <p className="font-display text-2xl font-bold tracking-tight">
-              {c.value.toLocaleString("pt-BR")}
-            </p>
-          </Card>
-        ))}
       </div>
 
       {/* Filtros + tabela */}

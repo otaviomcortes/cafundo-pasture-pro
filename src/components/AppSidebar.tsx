@@ -3,9 +3,7 @@ import {
   LayoutDashboard,
   Beef,
   Syringe,
-  Baby,
-  PackageMinus,
-  FileBarChart,
+  HeartPulse,
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,17 +19,22 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "./Logo";
 
+// Ícones por módulo (contexto pecuário):
+//  - Matrizes:     Beef  (animal do rebanho)
+//  - Protocolos:   Syringe (manejo reprodutivo)
+//  - Partos:       HeartPulse (acompanhamento reprodutivo)
+//  - Descartes:    Beef  (saída do ciclo reprodutivo / abate)
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Matrizes", url: "/matrizes", icon: Beef },
   { title: "Protocolos IATF", url: "/protocolos-iatf", icon: Syringe },
-  { title: "Partos", url: "/partos", icon: Baby },
-  { title: "Descartes", url: "/descartes", icon: PackageMinus },
+  { title: "Partos", url: "/partos", icon: HeartPulse },
+  { title: "Descartes", url: "/descartes", icon: Beef },
 ];
 
-const reportItems = [
-  { title: "Relatórios", url: "/relatorios", icon: FileBarChart },
-];
+// NOTA: a rota /relatorios permanece registrada no código para evitar
+// quebra de navegação por links antigos, porém foi removida do menu
+// nesta sprint de simplificação. Decisão de remoção definitiva pendente.
 
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
@@ -50,24 +53,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Análise</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {reportItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                     <Link to={item.url}>

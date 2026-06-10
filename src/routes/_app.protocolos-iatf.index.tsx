@@ -1,17 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Syringe,
-  Activity,
-  CheckCircle2,
-  Beef,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,17 +112,6 @@ function ProtocolosIatfPage() {
   }
 
 
-  const resumo = useMemo(() => {
-    return {
-      total: protocolos.length,
-      andamento: protocolos.filter(
-        (p) => p.status === "em_andamento" || p.status === "aguardando_diagnostico",
-      ).length,
-      concluidos: protocolos.filter((p) => p.status === "finalizado").length,
-      matrizes: participacoes.length,
-    };
-  }, [protocolos, participacoes]);
-
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return protocolos
@@ -147,19 +126,6 @@ function ProtocolosIatfPage() {
       );
   }, [protocolos, statusFiltro, busca]);
 
-  const cards = [
-    { title: "Total de protocolos", value: resumo.total, icon: Syringe, tone: "primary" },
-    { title: "Em andamento", value: resumo.andamento, icon: Activity, tone: "info" },
-    { title: "Concluídos", value: resumo.concluidos, icon: CheckCircle2, tone: "success" },
-    { title: "Matrizes em protocolo", value: resumo.matrizes, icon: Beef, tone: "warning" },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-  };
 
   return (
     <div className="space-y-6">
@@ -177,22 +143,6 @@ function ProtocolosIatfPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Card
-            key={c.title}
-            className="p-4 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]"
-          >
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClasses[c.tone]}`}>
-              <c.icon className="h-4 w-4" />
-            </div>
-            <p className="mt-3 text-xs font-medium text-muted-foreground">{c.title}</p>
-            <p className="font-display text-2xl font-bold tracking-tight">
-              {c.value.toLocaleString("pt-BR")}
-            </p>
-          </Card>
-        ))}
-      </div>
 
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">

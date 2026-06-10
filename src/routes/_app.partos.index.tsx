@@ -1,16 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Baby,
-  Mars,
-  Venus,
-  CalendarClock,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-} from "lucide-react";
+import { Plus, Search, Eye, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,23 +58,6 @@ function PartosPage() {
   const [sexoFiltro, setSexoFiltro] = useState<SexoFiltro>("todos");
   const [periodoFiltro, setPeriodoFiltro] = useState<PeriodoFiltro>("todos");
 
-  const resumo = useMemo(() => {
-    const agora = Date.now();
-    const umAnoMs = 365 * 24 * 60 * 60 * 1000;
-    const trintaDiasMs = 30 * 24 * 60 * 60 * 1000;
-    const noAno = partos.filter(
-      (p) => agora - new Date(p.dataParto).getTime() <= umAnoMs,
-    );
-    return {
-      ano: noAno.length,
-      machos: noAno.filter((p) => p.sexoBezerro === "macho").length,
-      femeas: noAno.filter((p) => p.sexoBezerro === "femea").length,
-      ultimos30: partos.filter(
-        (p) => agora - new Date(p.dataParto).getTime() <= trintaDiasMs,
-      ).length,
-    };
-  }, [partos]);
-
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     const agora = Date.now();
@@ -108,30 +82,6 @@ function PartosPage() {
       );
   }, [partos, sexoFiltro, periodoFiltro, busca, matrizPorId]);
 
-  const cards = [
-    {
-      title: "Partos no ano",
-      value: resumo.ano,
-      icon: Baby,
-      tone: "primary",
-    },
-    { title: "Machos", value: resumo.machos, icon: Mars, tone: "info" },
-    { title: "Fêmeas", value: resumo.femeas, icon: Venus, tone: "success" },
-    {
-      title: "Últimos 30 dias",
-      value: resumo.ultimos30,
-      icon: CalendarClock,
-      tone: "warning",
-    },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -146,26 +96,6 @@ function PartosPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Card
-            key={c.title}
-            className="p-4 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-elevated)]"
-          >
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded-lg ${toneClasses[c.tone]}`}
-            >
-              <c.icon className="h-4 w-4" />
-            </div>
-            <p className="mt-3 text-xs font-medium text-muted-foreground">
-              {c.title}
-            </p>
-            <p className="font-display text-2xl font-bold tracking-tight">
-              {c.value.toLocaleString("pt-BR")}
-            </p>
-          </Card>
-        ))}
-      </div>
 
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
