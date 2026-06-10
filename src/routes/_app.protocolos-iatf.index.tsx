@@ -1,17 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Syringe,
-  Activity,
-  CheckCircle2,
-  Beef,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
