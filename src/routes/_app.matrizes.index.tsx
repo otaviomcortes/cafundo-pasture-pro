@@ -94,8 +94,30 @@ function MatrizesPage() {
   const [proprietarioFiltro, setProprietarioFiltro] =
     useState<ProprietarioFiltro>("todos");
 
-  const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
+  const qc = useQueryClient();
   const [novaOpen, setNovaOpen] = useState(false);
+  const [editando, setEditando] = useState<Matriz | null>(null);
+
+  const criarMut = useMutation({
+    mutationFn: (input: MatrizInput) => matrizService.criar(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Matriz cadastrada com sucesso.");
+      setNovaOpen(false);
+    },
+    onError: () => toast.error("Não foi possível cadastrar a matriz."),
+  });
+
+  const atualizarMut = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: MatrizInput }) =>
+      matrizService.atualizar(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Matriz atualizada com sucesso.");
+      setEditando(null);
+    },
+    onError: () => toast.error("Não foi possível atualizar a matriz."),
+  });
 
   const resumo = useMemo(() => {
     const total = matrizes.length;
