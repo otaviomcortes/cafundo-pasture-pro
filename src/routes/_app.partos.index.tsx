@@ -58,23 +58,6 @@ function PartosPage() {
   const [sexoFiltro, setSexoFiltro] = useState<SexoFiltro>("todos");
   const [periodoFiltro, setPeriodoFiltro] = useState<PeriodoFiltro>("todos");
 
-  const resumo = useMemo(() => {
-    const agora = Date.now();
-    const umAnoMs = 365 * 24 * 60 * 60 * 1000;
-    const trintaDiasMs = 30 * 24 * 60 * 60 * 1000;
-    const noAno = partos.filter(
-      (p) => agora - new Date(p.dataParto).getTime() <= umAnoMs,
-    );
-    return {
-      ano: noAno.length,
-      machos: noAno.filter((p) => p.sexoBezerro === "macho").length,
-      femeas: noAno.filter((p) => p.sexoBezerro === "femea").length,
-      ultimos30: partos.filter(
-        (p) => agora - new Date(p.dataParto).getTime() <= trintaDiasMs,
-      ).length,
-    };
-  }, [partos]);
-
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     const agora = Date.now();
@@ -98,30 +81,6 @@ function PartosPage() {
           new Date(b.dataParto).getTime() - new Date(a.dataParto).getTime(),
       );
   }, [partos, sexoFiltro, periodoFiltro, busca, matrizPorId]);
-
-  const cards = [
-    {
-      title: "Partos no ano",
-      value: resumo.ano,
-      icon: Baby,
-      tone: "primary",
-    },
-    { title: "Machos", value: resumo.machos, icon: Mars, tone: "info" },
-    { title: "Fêmeas", value: resumo.femeas, icon: Venus, tone: "success" },
-    {
-      title: "Últimos 30 dias",
-      value: resumo.ultimos30,
-      icon: CalendarClock,
-      tone: "warning",
-    },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-  };
 
   return (
     <div className="space-y-6">
