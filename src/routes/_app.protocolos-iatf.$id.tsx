@@ -5,9 +5,7 @@ import {
   ArrowLeft,
   Search,
   Plus,
-  CheckCircle2,
   AlertCircle,
-  Beef,
   Trash2,
   X,
 } from "lucide-react";
