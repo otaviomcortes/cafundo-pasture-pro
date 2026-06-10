@@ -379,40 +379,12 @@ function ProtocoloDetalhePage() {
         </div>
       </div>
 
-      {/* Contadores */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Card className="p-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Beef className="h-4 w-4" />
-          </div>
-          <p className="mt-3 text-xs font-medium text-muted-foreground">Total de matrizes</p>
-          <p className="font-display text-2xl font-bold tracking-tight">{total}</p>
-        </Card>
-        {[
-          { label: "Etapa 1", done: e1Done },
-          { label: "Etapa 2", done: e2Done },
-          { label: "Etapa 3", done: e3Done },
-        ].map((e) => (
-          <Card key={e.label} className="p-4">
-            <p className="text-xs font-medium text-muted-foreground">{e.label}</p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p className="font-display text-2xl font-bold tracking-tight text-success">{e.done}</p>
-              <span className="text-xs text-muted-foreground">concluídas</span>
-            </div>
-            <p className="mt-1 text-xs text-warning-foreground">
-              {total - e.done} pendentes
-            </p>
-          </Card>
-        ))}
-        <Card className="p-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/15 text-success">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-          <p className="mt-3 text-xs font-medium text-muted-foreground">Todas etapas OK</p>
-          <p className="font-display text-2xl font-bold tracking-tight">{todasConcluidas}</p>
-          <p className="text-xs text-warning-foreground">{pendentes} pendentes</p>
-        </Card>
-      </div>
+      {/* Resumo curto do andamento (sem cards visuais) */}
+      <p className="text-sm text-muted-foreground">
+        {total} matriz(es) · Etapa 1: {e1Done}/{total} · Etapa 2: {e2Done}/{total} · Etapa 3: {e3Done}/{total} ·{" "}
+        {todasConcluidas} com todas etapas concluídas · {prenhasNoProtocolo} diagnóstico(s) de prenhez
+      </p>
+
 
       {/* Cadastro de matrizes */}
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
