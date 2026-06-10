@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Beef,
   HeartPulse,
@@ -35,7 +36,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -44,6 +44,8 @@ import {
   partoService,
   PROPRIETARIOS_MATRIZ,
   PROPRIETARIO_LABEL,
+  type Matriz,
+  type MatrizInput,
   type MatrizStatus,
   type ProprietarioMatriz,
   type SituacaoReprodutiva,
@@ -56,6 +58,11 @@ import {
   SITUACAO_BADGE,
   calcularIdade,
 } from "@/lib/matrizUi";
+import {
+  MatrizForm,
+  emptyMatrizForm,
+  matrizToForm,
+} from "@/components/matrizes/MatrizForm";
 
 export const Route = createFileRoute("/_app/matrizes/")({
   head: () => ({
