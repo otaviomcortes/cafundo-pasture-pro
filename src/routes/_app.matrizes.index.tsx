@@ -2,17 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Beef,
-  HeartPulse,
-  HeartCrack,
-  Syringe,
-  PackageMinus,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-} from "lucide-react";
+import { Plus, Search, Eye, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
