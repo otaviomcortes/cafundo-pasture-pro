@@ -112,17 +112,6 @@ function ProtocolosIatfPage() {
   }
 
 
-  const resumo = useMemo(() => {
-    return {
-      total: protocolos.length,
-      andamento: protocolos.filter(
-        (p) => p.status === "em_andamento" || p.status === "aguardando_diagnostico",
-      ).length,
-      concluidos: protocolos.filter((p) => p.status === "finalizado").length,
-      matrizes: participacoes.length,
-    };
-  }, [protocolos, participacoes]);
-
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return protocolos
@@ -137,19 +126,6 @@ function ProtocolosIatfPage() {
       );
   }, [protocolos, statusFiltro, busca]);
 
-  const cards = [
-    { title: "Total de protocolos", value: resumo.total, icon: Syringe, tone: "primary" },
-    { title: "Em andamento", value: resumo.andamento, icon: Activity, tone: "info" },
-    { title: "Concluídos", value: resumo.concluidos, icon: CheckCircle2, tone: "success" },
-    { title: "Matrizes em protocolo", value: resumo.matrizes, icon: Beef, tone: "warning" },
-  ] as const;
-
-  const toneClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning-foreground",
-    info: "bg-info/15 text-info",
-  };
 
   return (
     <div className="space-y-6">
