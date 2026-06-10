@@ -395,38 +395,51 @@ function MatrizesPage() {
         </div>
       </Card>
 
-      {/* Placeholder edição */}
-      <Dialog
-        open={editPlaceholderOpen}
-        onOpenChange={setEditPlaceholderOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar matriz</DialogTitle>
-            <DialogDescription>
-              Formulário de edição será implementado na próxima etapa.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setEditPlaceholderOpen(false)}>
-              Entendi
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Placeholder Nova Matriz */}
-      <Dialog open={novaOpen} onOpenChange={setNovaOpen}>
-        <DialogContent>
+      {/* Nova Matriz */}
+      <Dialog open={novaOpen} onOpenChange={(o) => !criarMut.isPending && setNovaOpen(o)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nova matriz</DialogTitle>
             <DialogDescription>
-              Formulário de cadastro será implementado na próxima etapa.
+              Cadastre uma nova matriz no rebanho.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setNovaOpen(false)}>Entendi</Button>
-          </DialogFooter>
+          <MatrizForm
+            initial={emptyMatrizForm()}
+            matrizes={matrizes}
+            submitting={criarMut.isPending}
+            submitLabel="Salvar matriz"
+            onSubmit={(input) => criarMut.mutate(input)}
+            onCancel={() => setNovaOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Editar Matriz */}
+      <Dialog
+        open={!!editando}
+        onOpenChange={(o) => !atualizarMut.isPending && !o && setEditando(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar matriz</DialogTitle>
+            <DialogDescription>
+              {editando && `Brinco ${editando.numeroBrinco}`}
+            </DialogDescription>
+          </DialogHeader>
+          {editando && (
+            <MatrizForm
+              initial={matrizToForm(editando)}
+              matrizes={matrizes}
+              editingId={editando.id}
+              submitting={atualizarMut.isPending}
+              submitLabel="Salvar alterações"
+              onSubmit={(input) =>
+                atualizarMut.mutate({ id: editando.id, input })
+              }
+              onCancel={() => setEditando(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
