@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Beef,
   HeartPulse,
@@ -35,7 +36,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -44,6 +44,8 @@ import {
   partoService,
   PROPRIETARIOS_MATRIZ,
   PROPRIETARIO_LABEL,
+  type Matriz,
+  type MatrizInput,
   type MatrizStatus,
   type ProprietarioMatriz,
   type SituacaoReprodutiva,
@@ -56,6 +58,11 @@ import {
   SITUACAO_BADGE,
   calcularIdade,
 } from "@/lib/matrizUi";
+import {
+  MatrizForm,
+  emptyMatrizForm,
+  matrizToForm,
+} from "@/components/matrizes/MatrizForm";
 
 export const Route = createFileRoute("/_app/matrizes/")({
   head: () => ({
@@ -87,8 +94,30 @@ function MatrizesPage() {
   const [proprietarioFiltro, setProprietarioFiltro] =
     useState<ProprietarioFiltro>("todos");
 
-  const [editPlaceholderOpen, setEditPlaceholderOpen] = useState(false);
+  const qc = useQueryClient();
   const [novaOpen, setNovaOpen] = useState(false);
+  const [editando, setEditando] = useState<Matriz | null>(null);
+
+  const criarMut = useMutation({
+    mutationFn: (input: MatrizInput) => matrizService.criar(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Matriz cadastrada com sucesso.");
+      setNovaOpen(false);
+    },
+    onError: () => toast.error("Não foi possível cadastrar a matriz."),
+  });
+
+  const atualizarMut = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: MatrizInput }) =>
+      matrizService.atualizar(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matrizes"] });
+      toast.success("Matriz atualizada com sucesso.");
+      setEditando(null);
+    },
+    onError: () => toast.error("Não foi possível atualizar a matriz."),
+  });
 
   const resumo = useMemo(() => {
     const total = matrizes.length;
@@ -346,7 +375,7 @@ function MatrizesPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setEditPlaceholderOpen(true)}
+                          onClick={() => setEditando(m)}
                         >
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
@@ -366,38 +395,51 @@ function MatrizesPage() {
         </div>
       </Card>
 
-      {/* Placeholder edição */}
-      <Dialog
-        open={editPlaceholderOpen}
-        onOpenChange={setEditPlaceholderOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar matriz</DialogTitle>
-            <DialogDescription>
-              Formulário de edição será implementado na próxima etapa.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setEditPlaceholderOpen(false)}>
-              Entendi
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Placeholder Nova Matriz */}
-      <Dialog open={novaOpen} onOpenChange={setNovaOpen}>
-        <DialogContent>
+      {/* Nova Matriz */}
+      <Dialog open={novaOpen} onOpenChange={(o) => !criarMut.isPending && setNovaOpen(o)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nova matriz</DialogTitle>
             <DialogDescription>
-              Formulário de cadastro será implementado na próxima etapa.
+              Cadastre uma nova matriz no rebanho.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setNovaOpen(false)}>Entendi</Button>
-          </DialogFooter>
+          <MatrizForm
+            initial={emptyMatrizForm()}
+            matrizes={matrizes}
+            submitting={criarMut.isPending}
+            submitLabel="Salvar matriz"
+            onSubmit={(input) => criarMut.mutate(input)}
+            onCancel={() => setNovaOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Editar Matriz */}
+      <Dialog
+        open={!!editando}
+        onOpenChange={(o) => !atualizarMut.isPending && !o && setEditando(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar matriz</DialogTitle>
+            <DialogDescription>
+              {editando && `Brinco ${editando.numeroBrinco}`}
+            </DialogDescription>
+          </DialogHeader>
+          {editando && (
+            <MatrizForm
+              initial={matrizToForm(editando)}
+              matrizes={matrizes}
+              editingId={editando.id}
+              submitting={atualizarMut.isPending}
+              submitLabel="Salvar alterações"
+              onSubmit={(input) =>
+                atualizarMut.mutate({ id: editando.id, input })
+              }
+              onCancel={() => setEditando(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
