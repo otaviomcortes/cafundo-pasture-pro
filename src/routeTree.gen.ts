@@ -25,6 +25,8 @@ import { Route as AppDescartesNovoRouteImport } from './routes/_app.descartes.no
 import { Route as AppPartosIdIndexRouteImport } from './routes/_app.partos.$id.index'
 import { Route as AppDescartesIdIndexRouteImport } from './routes/_app.descartes.$id.index'
 import { Route as AppPartosIdEditarRouteImport } from './routes/_app.partos.$id.editar'
+import { Route as AppDescartesLotesNovoRouteImport } from './routes/_app.descartes.lotes.novo'
+import { Route as AppDescartesLotesLoteIdRouteImport } from './routes/_app.descartes.lotes.$loteId'
 import { Route as AppDescartesIdEditarRouteImport } from './routes/_app.descartes.$id.editar'
 
 const LoginRoute = LoginRouteImport.update({
@@ -106,6 +108,16 @@ const AppPartosIdEditarRoute = AppPartosIdEditarRouteImport.update({
   path: '/partos/$id/editar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDescartesLotesNovoRoute = AppDescartesLotesNovoRouteImport.update({
+  id: '/descartes/lotes/novo',
+  path: '/descartes/lotes/novo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDescartesLotesLoteIdRoute = AppDescartesLotesLoteIdRouteImport.update({
+  id: '/descartes/lotes/$loteId',
+  path: '/descartes/lotes/$loteId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDescartesIdEditarRoute = AppDescartesIdEditarRouteImport.update({
   id: '/descartes/$id/editar',
   path: '/descartes/$id/editar',
@@ -126,6 +138,8 @@ export interface FileRoutesByFullPath {
   '/partos/': typeof AppPartosIndexRoute
   '/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/descartes/$id/editar': typeof AppDescartesIdEditarRoute
+  '/descartes/lotes/$loteId': typeof AppDescartesLotesLoteIdRoute
+  '/descartes/lotes/novo': typeof AppDescartesLotesNovoRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/descartes/$id/': typeof AppDescartesIdIndexRoute
   '/partos/$id/': typeof AppPartosIdIndexRoute
@@ -144,6 +158,8 @@ export interface FileRoutesByTo {
   '/partos': typeof AppPartosIndexRoute
   '/protocolos-iatf': typeof AppProtocolosIatfIndexRoute
   '/descartes/$id/editar': typeof AppDescartesIdEditarRoute
+  '/descartes/lotes/$loteId': typeof AppDescartesLotesLoteIdRoute
+  '/descartes/lotes/novo': typeof AppDescartesLotesNovoRoute
   '/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/descartes/$id': typeof AppDescartesIdIndexRoute
   '/partos/$id': typeof AppPartosIdIndexRoute
@@ -164,6 +180,8 @@ export interface FileRoutesById {
   '/_app/partos/': typeof AppPartosIndexRoute
   '/_app/protocolos-iatf/': typeof AppProtocolosIatfIndexRoute
   '/_app/descartes/$id/editar': typeof AppDescartesIdEditarRoute
+  '/_app/descartes/lotes/$loteId': typeof AppDescartesLotesLoteIdRoute
+  '/_app/descartes/lotes/novo': typeof AppDescartesLotesNovoRoute
   '/_app/partos/$id/editar': typeof AppPartosIdEditarRoute
   '/_app/descartes/$id/': typeof AppDescartesIdIndexRoute
   '/_app/partos/$id/': typeof AppPartosIdIndexRoute
@@ -184,6 +202,8 @@ export interface FileRouteTypes {
     | '/partos/'
     | '/protocolos-iatf/'
     | '/descartes/$id/editar'
+    | '/descartes/lotes/$loteId'
+    | '/descartes/lotes/novo'
     | '/partos/$id/editar'
     | '/descartes/$id/'
     | '/partos/$id/'
@@ -202,6 +222,8 @@ export interface FileRouteTypes {
     | '/partos'
     | '/protocolos-iatf'
     | '/descartes/$id/editar'
+    | '/descartes/lotes/$loteId'
+    | '/descartes/lotes/novo'
     | '/partos/$id/editar'
     | '/descartes/$id'
     | '/partos/$id'
@@ -221,6 +243,8 @@ export interface FileRouteTypes {
     | '/_app/partos/'
     | '/_app/protocolos-iatf/'
     | '/_app/descartes/$id/editar'
+    | '/_app/descartes/lotes/$loteId'
+    | '/_app/descartes/lotes/novo'
     | '/_app/partos/$id/editar'
     | '/_app/descartes/$id/'
     | '/_app/partos/$id/'
@@ -345,6 +369,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPartosIdEditarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/descartes/lotes/novo': {
+      id: '/_app/descartes/lotes/novo'
+      path: '/descartes/lotes/novo'
+      fullPath: '/descartes/lotes/novo'
+      preLoaderRoute: typeof AppDescartesLotesNovoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/descartes/lotes/$loteId': {
+      id: '/_app/descartes/lotes/$loteId'
+      path: '/descartes/lotes/$loteId'
+      fullPath: '/descartes/lotes/$loteId'
+      preLoaderRoute: typeof AppDescartesLotesLoteIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/descartes/$id/editar': {
       id: '/_app/descartes/$id/editar'
       path: '/descartes/$id/editar'
@@ -368,6 +406,8 @@ interface AppRouteChildren {
   AppPartosIndexRoute: typeof AppPartosIndexRoute
   AppProtocolosIatfIndexRoute: typeof AppProtocolosIatfIndexRoute
   AppDescartesIdEditarRoute: typeof AppDescartesIdEditarRoute
+  AppDescartesLotesLoteIdRoute: typeof AppDescartesLotesLoteIdRoute
+  AppDescartesLotesNovoRoute: typeof AppDescartesLotesNovoRoute
   AppPartosIdEditarRoute: typeof AppPartosIdEditarRoute
   AppDescartesIdIndexRoute: typeof AppDescartesIdIndexRoute
   AppPartosIdIndexRoute: typeof AppPartosIdIndexRoute
@@ -386,6 +426,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppPartosIndexRoute: AppPartosIndexRoute,
   AppProtocolosIatfIndexRoute: AppProtocolosIatfIndexRoute,
   AppDescartesIdEditarRoute: AppDescartesIdEditarRoute,
+  AppDescartesLotesLoteIdRoute: AppDescartesLotesLoteIdRoute,
+  AppDescartesLotesNovoRoute: AppDescartesLotesNovoRoute,
   AppPartosIdEditarRoute: AppPartosIdEditarRoute,
   AppDescartesIdIndexRoute: AppDescartesIdIndexRoute,
   AppPartosIdIndexRoute: AppPartosIdIndexRoute,

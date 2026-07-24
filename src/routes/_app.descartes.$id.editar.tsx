@@ -68,12 +68,33 @@ function EditarDescartePage() {
     );
   }
 
+  if (descarte.tipoDescarte === "lote") {
+    return (
+      <div className="mx-auto max-w-md space-y-4 py-16 text-center">
+        <h1 className="font-display text-2xl font-bold">
+          Descarte em lote
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Descartes em lote são gerenciados na tela do Lote para Frigorífico.
+        </p>
+        <Button asChild>
+          <Link
+            to="/descartes/lotes/$loteId"
+            params={{ loteId: descarte.loteId ?? "" }}
+          >
+            Abrir Lote
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
   const initial: DescarteFormValues = {
     matrizId: descarte.matrizId,
     dataDescarte: toDateInput(descarte.dataDescarte),
-    motivo: descarte.motivo,
-    peso: String(descarte.peso),
-    destino: descarte.destino,
+    motivo: descarte.motivo ?? "",
+    peso: String(descarte.peso ?? ""),
+    destino: descarte.destino ?? "",
     observacoes: descarte.observacoes ?? "",
   };
 

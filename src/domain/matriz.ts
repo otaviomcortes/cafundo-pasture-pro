@@ -4,7 +4,8 @@ export type SituacaoReprodutiva =
   | "apta"
   | "prenha"
   | "vazia"
-  | "em_protocolo";
+  | "em_protocolo"
+  | "descartada";
 
 export type ProprietarioMatriz = "Jean" | "Eduardo" | "Gustavo" | "Otavio";
 

@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Eye, Pencil } from "lucide-react";
+import { Plus, Search, Eye, Pencil, PackageCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,9 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   descarteService,
   matrizService,
+  loteFrigorificoService,
+  loteMatrizService,
   MOTIVOS_DESCARTE,
   PROPRIETARIOS_MATRIZ,
   PROPRIETARIO_LABEL,
@@ -34,6 +38,7 @@ import {
   DESTINO_DESCARTE_LABEL,
   formatDate,
 } from "@/lib/descarteUi";
+import { STATUS_LOTE_LABEL, STATUS_LOTE_BADGE } from "@/lib/loteFrigorificoUi";
 
 export const Route = createFileRoute("/_app/descartes/")({
   head: () => ({ meta: [{ title: "Descartes — Cafundó" }] }),
@@ -46,7 +51,48 @@ type PeriodoFiltro = "todos" | "30" | "90" | "365";
 
 function DescartesPage() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<"individuais" | "lotes">("individuais");
 
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">Saída do rebanho</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
+            Descartes
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          {tab === "individuais" ? (
+            <Button onClick={() => navigate({ to: "/descartes/novo" })}>
+              <Plus className="mr-1 h-4 w-4" /> Novo Descarte
+            </Button>
+          ) : (
+            <Button onClick={() => navigate({ to: "/descartes/lotes/novo" })}>
+              <Plus className="mr-1 h-4 w-4" /> Novo Lote
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+        <TabsList>
+          <TabsTrigger value="individuais">Descartes individuais</TabsTrigger>
+          <TabsTrigger value="lotes">Lotes para Frigorífico</TabsTrigger>
+        </TabsList>
+        <TabsContent value="individuais" className="mt-4">
+          <IndividuaisTable />
+        </TabsContent>
+        <TabsContent value="lotes" className="mt-4">
+          <LotesTable />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function IndividuaisTable() {
+  const navigate = useNavigate();
   const { data: descartes = [], isLoading } = useQuery({
     queryKey: ["descartes"],
     queryFn: () => descarteService.listar(),
@@ -68,6 +114,8 @@ function DescartesPage() {
     useState<ProprietarioFiltro>("todos");
   const [periodoFiltro, setPeriodoFiltro] = useState<PeriodoFiltro>("todos");
 
+  const individuais = descartes.filter((d) => d.tipoDescarte === "individual");
+
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     const agora = Date.now();
@@ -75,7 +123,7 @@ function DescartesPage() {
       periodoFiltro === "todos"
         ? null
         : Number(periodoFiltro) * 24 * 60 * 60 * 1000;
-    return descartes
+    return individuais
       .filter((d) => {
         const matriz = matrizPorId.get(d.matrizId);
         if (motivoFiltro !== "todos" && d.motivo !== motivoFiltro) return false;
@@ -97,176 +145,261 @@ function DescartesPage() {
           new Date(b.dataDescarte).getTime() -
           new Date(a.dataDescarte).getTime(),
       );
-  }, [descartes, motivoFiltro, proprietarioFiltro, periodoFiltro, busca, matrizPorId]);
+  }, [individuais, motivoFiltro, proprietarioFiltro, periodoFiltro, busca, matrizPorId]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Saída do rebanho</p>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
-            Descartes
-          </h1>
+    <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por brinco da matriz..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-9"
+          />
         </div>
-        <Button onClick={() => navigate({ to: "/descartes/novo" })}>
-          <Plus className="mr-1 h-4 w-4" /> Novo Descarte
-        </Button>
+        <Select
+          value={proprietarioFiltro}
+          onValueChange={(v) =>
+            setProprietarioFiltro(v as ProprietarioFiltro)
+          }
+        >
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Proprietário" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos proprietários</SelectItem>
+            {PROPRIETARIOS_MATRIZ.map((p) => (
+              <SelectItem key={p} value={p}>
+                {PROPRIETARIO_LABEL[p]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={motivoFiltro}
+          onValueChange={(v) => setMotivoFiltro(v as MotivoFiltro)}
+        >
+          <SelectTrigger className="w-full sm:w-56">
+            <SelectValue placeholder="Motivo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os motivos</SelectItem>
+            {MOTIVOS_DESCARTE.map((m) => (
+              <SelectItem key={m} value={m}>
+                {MOTIVO_DESCARTE_LABEL[m]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={periodoFiltro}
+          onValueChange={(v) => setPeriodoFiltro(v as PeriodoFiltro)}
+        >
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todo o período</SelectItem>
+            <SelectItem value="30">Últimos 30 dias</SelectItem>
+            <SelectItem value="90">Últimos 90 dias</SelectItem>
+            <SelectItem value="365">Últimos 12 meses</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="ml-auto text-xs text-muted-foreground">
+          {filtrados.length} de {individuais.length}
+        </div>
       </div>
 
-
-      <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
-        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por brinco da matriz..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select
-            value={proprietarioFiltro}
-            onValueChange={(v) =>
-              setProprietarioFiltro(v as ProprietarioFiltro)
-            }
-          >
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Proprietário" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos proprietários</SelectItem>
-              {PROPRIETARIOS_MATRIZ.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {PROPRIETARIO_LABEL[p]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={motivoFiltro}
-            onValueChange={(v) => setMotivoFiltro(v as MotivoFiltro)}
-          >
-            <SelectTrigger className="w-full sm:w-56">
-              <SelectValue placeholder="Motivo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os motivos</SelectItem>
-              {MOTIVOS_DESCARTE.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {MOTIVO_DESCARTE_LABEL[m]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={periodoFiltro}
-            onValueChange={(v) => setPeriodoFiltro(v as PeriodoFiltro)}
-          >
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todo o período</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Últimos 12 meses</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="ml-auto text-xs text-muted-foreground">
-            {filtrados.length} de {descartes.length}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Brinco</TableHead>
+              <TableHead>Proprietário</TableHead>
+              <TableHead>Motivo</TableHead>
+              <TableHead className="text-right">Peso (kg)</TableHead>
+              <TableHead>Destino</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Brinco</TableHead>
-                <TableHead>Proprietário</TableHead>
-                <TableHead>Motivo</TableHead>
-                <TableHead className="text-right">Peso (kg)</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  Carregando descartes...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="py-10 text-center text-muted-foreground"
-                  >
-                    Carregando descartes...
-                  </TableCell>
-                </TableRow>
-              ) : filtrados.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="py-10 text-center text-muted-foreground"
-                  >
-                    Nenhum descarte encontrado com os filtros atuais.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtrados.map((d) => {
-                  const matriz = matrizPorId.get(d.matrizId);
-                  return (
-                    <TableRow key={d.id}>
-                      <TableCell>{formatDate(d.dataDescarte)}</TableCell>
-                      <TableCell className="font-medium">
-                        {matriz?.numeroBrinco ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {matriz
-                          ? PROPRIETARIO_LABEL[matriz.proprietario]
-                          : "—"}
-                      </TableCell>
-                      <TableCell>{MOTIVO_DESCARTE_LABEL[d.motivo]}</TableCell>
-                      <TableCell className="text-right">
-                        {d.peso.toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell>{DESTINO_DESCARTE_LABEL[d.destino]}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              navigate({
-                                to: "/descartes/$id",
-                                params: { id: d.id },
-                              })
-                            }
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Visualizar</span>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              navigate({
-                                to: "/descartes/$id/editar",
-                                params: { id: d.id },
-                              })
-                            }
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Editar</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+            ) : filtrados.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  Nenhum descarte encontrado com os filtros atuais.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtrados.map((d) => {
+                const matriz = matrizPorId.get(d.matrizId);
+                return (
+                  <TableRow key={d.id}>
+                    <TableCell>{formatDate(d.dataDescarte)}</TableCell>
+                    <TableCell className="font-medium">
+                      {matriz?.numeroBrinco ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      {matriz ? PROPRIETARIO_LABEL[matriz.proprietario] : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {d.motivo ? MOTIVO_DESCARTE_LABEL[d.motivo] : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {d.peso !== undefined ? d.peso.toLocaleString("pt-BR") : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {d.destino ? DESTINO_DESCARTE_LABEL[d.destino] : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            navigate({ to: "/descartes/$id", params: { id: d.id } })
+                          }
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">Visualizar</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            navigate({ to: "/descartes/$id/editar", params: { id: d.id } })
+                          }
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  );
+}
+
+function LotesTable() {
+  const navigate = useNavigate();
+  const { data: lotes = [], isLoading } = useQuery({
+    queryKey: ["lotes"],
+    queryFn: () => loteFrigorificoService.listar(),
+  });
+  const { data: loteMatrizes = [] } = useQuery({
+    queryKey: ["loteMatrizes"],
+    queryFn: () => loteMatrizService.listar(),
+  });
+
+  const contPorLote = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const lm of loteMatrizes)
+      map.set(lm.loteId, (map.get(lm.loteId) ?? 0) + 1);
+    return map;
+  }, [loteMatrizes]);
+
+  const ordenados = [...lotes].sort(
+    (a, b) =>
+      new Date(b.dataInicioConfinamento).getTime() -
+      new Date(a.dataInicioConfinamento).getTime(),
+  );
+
+  return (
+    <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
+        <PackageCheck className="h-4 w-4 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          Agrupamentos de matrizes destinadas ao frigorífico com controle de peso inicial e final.
+        </p>
+        <div className="ml-auto text-xs text-muted-foreground">
+          {lotes.length} {lotes.length === 1 ? "lote" : "lotes"}
         </div>
-      </Card>
-    </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Início do confinamento</TableHead>
+              <TableHead>Envio</TableHead>
+              <TableHead>Frigorífico</TableHead>
+              <TableHead className="text-right">Matrizes</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  Carregando lotes...
+                </TableCell>
+              </TableRow>
+            ) : ordenados.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-14 text-center text-muted-foreground">
+                  Nenhum lote cadastrado. Crie um lote para agrupar matrizes destinadas ao frigorífico.
+                </TableCell>
+              </TableRow>
+            ) : (
+              ordenados.map((l) => (
+                <TableRow key={l.id}>
+                  <TableCell className="font-medium">
+                    <Link
+                      to="/descartes/lotes/$loteId"
+                      params={{ loteId: l.id }}
+                      className="text-primary hover:underline"
+                    >
+                      {l.nome}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{formatDate(l.dataInicioConfinamento)}</TableCell>
+                  <TableCell>{formatDate(l.dataEnvio)}</TableCell>
+                  <TableCell>{l.frigorifico ?? "—"}</TableCell>
+                  <TableCell className="text-right">
+                    {contPorLote.get(l.id) ?? 0}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={STATUS_LOTE_BADGE[l.status]}>
+                      {STATUS_LOTE_LABEL[l.status]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        navigate({
+                          to: "/descartes/lotes/$loteId",
+                          params: { loteId: l.id },
+                        })
+                      }
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">Abrir lote</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
   );
 }

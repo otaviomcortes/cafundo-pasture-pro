@@ -372,15 +372,16 @@ function MatrizDetalhePage() {
               const d = descartes[0];
               return (
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+                  <Info label="Tipo" value={d.tipoDescarte === "lote" ? "Lote para Frigorífico" : "Individual"} />
                   <Info label="Data do descarte" value={formatDate(d.dataDescarte)} />
                   <Info
                     label="Motivo"
-                    value={MOTIVO_DESCARTE_LABEL[d.motivo] ?? d.motivo}
+                    value={d.motivo ? (MOTIVO_DESCARTE_LABEL[d.motivo] ?? d.motivo) : "—"}
                   />
-                  <Info label="Peso (kg)" value={d.peso} />
+                  <Info label="Peso (kg)" value={d.peso ?? "—"} />
                   <Info
                     label="Destino"
-                    value={DESTINO_DESCARTE_LABEL[d.destino] ?? d.destino}
+                    value={d.destino ? (DESTINO_DESCARTE_LABEL[d.destino] ?? d.destino) : "—"}
                   />
                   <div className="col-span-2 md:col-span-3">
                     <dt className="text-xs text-muted-foreground">Observações</dt>

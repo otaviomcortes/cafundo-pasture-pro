@@ -10,13 +10,17 @@ export type MotivoDescarte =
 
 export type DestinoDescarte = "frigorifico" | "leilao" | "venda_direta";
 
+export type TipoDescarte = "individual" | "lote";
+
 export interface Descarte {
   id: string;
   matrizId: string;
   dataDescarte: string; // ISO date
-  motivo: MotivoDescarte;
-  peso: number; // kg
-  destino: DestinoDescarte;
+  tipoDescarte: TipoDescarte;
+  motivo?: MotivoDescarte; // opcional em descartes de lote
+  peso?: number; // kg — opcional em descartes de lote (peso final vem do lote)
+  destino?: DestinoDescarte; // lote implica frigorífico
+  loteId?: string; // preenchido quando tipoDescarte = "lote"
   observacoes?: string;
 }
 
@@ -51,6 +55,7 @@ function gerarDescartes(qtd: number): Descarte[] {
       id: `descarte-${i}`,
       matrizId: `matriz-${185 + i}`,
       dataDescarte: isoDaysAgo(i * 25),
+      tipoDescarte: "individual",
       motivo: MOTIVOS_DESCARTE[i % MOTIVOS_DESCARTE.length],
       peso: 420 + ((i * 7) % 120),
       destino: DESTINOS_DESCARTE[i % DESTINOS_DESCARTE.length],
@@ -60,5 +65,5 @@ function gerarDescartes(qtd: number): Descarte[] {
   return descartes;
 }
 
-// 10 descartes no ano
+// 10 descartes individuais no ano
 export const mockDescartes: Descarte[] = gerarDescartes(10);

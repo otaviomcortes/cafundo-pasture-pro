@@ -1,10 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  Beef,
-  Syringe,
-  HeartPulse,
-} from "lucide-react";
+import { BarChart3, Beef, Syringe, HeartPulse } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,13 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "./Logo";
 
-// Ícones por módulo (contexto pecuário):
-//  - Matrizes:     Beef  (animal do rebanho)
-//  - Protocolos:   Syringe (manejo reprodutivo)
-//  - Partos:       HeartPulse (acompanhamento reprodutivo)
-//  - Descartes:    Beef  (saída do ciclo reprodutivo / abate)
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Dashboard", url: "/", icon: BarChart3 },
   { title: "Matrizes", url: "/matrizes", icon: Beef },
   { title: "Protocolos IATF", url: "/protocolos-iatf", icon: Syringe },
   { title: "Partos", url: "/partos", icon: HeartPulse },

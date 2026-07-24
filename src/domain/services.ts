@@ -2,6 +2,14 @@ import { mockMatrizes, type Matriz, type MatrizInput } from "./matriz";
 import { mockPartos, type Parto } from "./parto";
 import { mockPrenhezes, type Prenhez, type PrenhezInput } from "./prenhez";
 import { mockDescartes, type Descarte } from "./descarte";
+import {
+  mockLotesFrigorifico,
+  mockLoteMatrizes,
+  type LoteFrigorifico,
+  type LoteFrigorificoInput,
+  type LoteMatriz,
+  type LoteMatrizInput,
+} from "./loteFrigorifico";
 
 import { mockProtocolosIatf, type ProtocoloIatf } from "./protocoloIatf";
 import {
@@ -233,3 +241,108 @@ export const protocoloMatrizService = {
   },
 };
 
+
+// ---------- Lotes para Frigorífico ----------
+export const loteFrigorificoService = {
+  listar: () => delay<LoteFrigorifico[]>(mockLotesFrigorifico),
+  buscarPorId: (id: string) =>
+    delay<LoteFrigorifico | undefined>(
+      mockLotesFrigorifico.find((l) => l.id === id),
+    ),
+  criar: (input: LoteFrigorificoInput) => {
+    const novo: LoteFrigorifico = {
+      ...input,
+      id: nextId("lote"),
+      status: "em_confinamento",
+      criadoEm: nowIso(),
+      atualizadoEm: nowIso(),
+    };
+    mockLotesFrigorifico.push(novo);
+    return delay<LoteFrigorifico>(novo);
+  },
+  atualizar: (id: string, patch: Partial<LoteFrigorifico>) => {
+    const l = mockLotesFrigorifico.find((x) => x.id === id);
+    if (l) Object.assign(l, patch, { atualizadoEm: nowIso() });
+    return delay<LoteFrigorifico | undefined>(l);
+  },
+  finalizar: (
+    id: string,
+    dados: { dataEnvio: string; frigorifico?: string; pesoTotalInformado?: number; valorRecebido?: number },
+  ) => {
+    const l = mockLotesFrigorifico.find((x) => x.id === id);
+    if (l) {
+      l.status = "finalizado";
+      l.dataEnvio = dados.dataEnvio;
+      l.frigorifico = dados.frigorifico;
+      l.pesoTotalInformado = dados.pesoTotalInformado;
+      l.valorRecebido = dados.valorRecebido;
+      l.atualizadoEm = nowIso();
+      // Marca todas as matrizes do lote como descartadas.
+      const membros = mockLoteMatrizes.filter((lm) => lm.loteId === id);
+      for (const lm of membros) {
+        const m = mockMatrizes.find((mm) => mm.id === lm.matrizId);
+        if (m) {
+          m.status = "descartada";
+          m.situacaoReprodutiva = "descartada";
+          m.atualizadoEm = nowIso();
+        }
+        // Cria registro de Descarte tipo=lote (para o histórico).
+        const jaExiste = mockDescartes.some(
+          (d) => d.matrizId === lm.matrizId && d.loteId === id,
+        );
+        if (!jaExiste) {
+          mockDescartes.push({
+            id: nextId("descarte"),
+            matrizId: lm.matrizId,
+            dataDescarte: dados.dataEnvio,
+            tipoDescarte: "lote",
+            destino: "frigorifico",
+            peso: lm.pesoFinal,
+            loteId: id,
+          });
+        }
+      }
+    }
+    return delay<LoteFrigorifico | undefined>(l);
+  },
+  remover: (id: string) => {
+    const idx = mockLotesFrigorifico.findIndex((x) => x.id === id);
+    if (idx >= 0) mockLotesFrigorifico.splice(idx, 1);
+    // Remove também as participações e descartes tipo lote vinculados.
+    for (let i = mockLoteMatrizes.length - 1; i >= 0; i--) {
+      if (mockLoteMatrizes[i].loteId === id) mockLoteMatrizes.splice(i, 1);
+    }
+    for (let i = mockDescartes.length - 1; i >= 0; i--) {
+      if (mockDescartes[i].loteId === id) mockDescartes.splice(i, 1);
+    }
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
+};
+
+export const loteMatrizService = {
+  listar: () => delay<LoteMatriz[]>(mockLoteMatrizes),
+  listarPorLote: (loteId: string) =>
+    delay<LoteMatriz[]>(mockLoteMatrizes.filter((l) => l.loteId === loteId)),
+  buscarPorMatriz: (matrizId: string) =>
+    delay<LoteMatriz | undefined>(
+      mockLoteMatrizes.find((l) => l.matrizId === matrizId),
+    ),
+  adicionar: (input: LoteMatrizInput) => {
+    // Impede duplicidade da mesma matriz em qualquer lote.
+    const ja = mockLoteMatrizes.find((l) => l.matrizId === input.matrizId);
+    if (ja) return delay<LoteMatriz>(ja);
+    const novo: LoteMatriz = { ...input, id: nextId("lotemat") };
+    mockLoteMatrizes.push(novo);
+    return delay<LoteMatriz>(novo);
+  },
+  atualizar: (id: string, patch: Partial<LoteMatrizInput>) => {
+    const l = mockLoteMatrizes.find((x) => x.id === id);
+    if (l) Object.assign(l, patch);
+    return delay<LoteMatriz | undefined>(l);
+  },
+  remover: (id: string) => {
+    const idx = mockLoteMatrizes.findIndex((x) => x.id === id);
+    if (idx >= 0) mockLoteMatrizes.splice(idx, 1);
+    return delay<{ id: string; removido: true }>({ id, removido: true });
+  },
+};

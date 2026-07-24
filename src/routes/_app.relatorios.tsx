@@ -197,11 +197,11 @@ function RelatoriosPage() {
   const pesoMedio =
     totalDescartes === 0
       ? 0
-      : Math.round(descartesFiltrados.reduce((s, d) => s + d.peso, 0) / totalDescartes);
+      : Math.round(descartesFiltrados.reduce((s, d) => s + (d.peso ?? 0), 0) / totalDescartes);
   const descartesPorMotivo = useMemo(() => {
     const map = new Map<string, number>();
     for (const d of descartesFiltrados) {
-      const label = MOTIVO_DESCARTE_LABEL[d.motivo];
+      const label = d.motivo ? MOTIVO_DESCARTE_LABEL[d.motivo] : "Lote para frigorífico";
       map.set(label, (map.get(label) ?? 0) + 1);
     }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
