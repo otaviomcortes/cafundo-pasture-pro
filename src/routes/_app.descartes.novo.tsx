@@ -37,6 +37,7 @@ function NovoDescartePage() {
       const novo = await descarteService.criar({
         matrizId: values.matrizId,
         dataDescarte: fromDateInput(values.dataDescarte),
+        tipoDescarte: "individual",
         motivo: values.motivo,
         peso: Number(values.peso),
         destino: values.destino,
@@ -45,7 +46,7 @@ function NovoDescartePage() {
 
       await matrizService.atualizar(matriz.id, {
         status: "descartada",
-        situacaoReprodutiva: "vazia",
+        situacaoReprodutiva: "descartada",
       });
 
       return novo;

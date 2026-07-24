@@ -107,12 +107,15 @@ function DescarteDetalhePage() {
           />
           <Info
             label="Motivo"
-            value={MOTIVO_DESCARTE_LABEL[descarte.motivo]}
+            value={descarte.motivo ? MOTIVO_DESCARTE_LABEL[descarte.motivo] : "—"}
           />
-          <Info label="Peso (kg)" value={descarte.peso.toLocaleString("pt-BR")} />
+          <Info
+            label="Peso (kg)"
+            value={descarte.peso !== undefined ? descarte.peso.toLocaleString("pt-BR") : "—"}
+          />
           <Info
             label="Destino"
-            value={DESTINO_DESCARTE_LABEL[descarte.destino]}
+            value={descarte.destino ? DESTINO_DESCARTE_LABEL[descarte.destino] : "—"}
           />
           <div className="sm:col-span-2">
             <Info
