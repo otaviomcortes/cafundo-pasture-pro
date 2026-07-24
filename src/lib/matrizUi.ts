@@ -15,29 +15,23 @@ export const SITUACAO_LABEL: Record<SituacaoReprodutiva, string> = {
   prenha: "Prenha",
   vazia: "Vazia",
   em_protocolo: "Em protocolo",
+  descartada: "Descartada",
 };
 
 // Padronização de cores dos badges.
 export const STATUS_BADGE: Record<MatrizStatus, string> = {
-  // Ativa: verde discreto
   ativa: "bg-success/15 text-success border-success/30",
-  // Descartada: vermelho
   descartada: "bg-destructive/10 text-destructive border-destructive/30",
-  // Vendida: cinza
   vendida: "bg-muted text-muted-foreground border-border",
-  // Morta: cinza escuro / preto
   morta: "bg-foreground/80 text-background border-foreground/80",
 };
 
 export const SITUACAO_BADGE: Record<SituacaoReprodutiva, string> = {
-  // Apta: cinza/verde claro
   apta: "bg-success/10 text-success border-success/20",
-  // Prenha: verde
   prenha: "bg-success/20 text-success border-success/40",
-  // Vazia: amarelo/laranja
   vazia: "bg-warning/25 text-warning-foreground border-warning/50",
-  // Em protocolo: azul
   em_protocolo: "bg-info/15 text-info border-info/30",
+  descartada: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 export function formatDate(iso?: string): string {
