@@ -19,6 +19,8 @@ import {
   descarteService,
   protocoloMatrizService,
   protocoloIatfService,
+  loteFrigorificoService,
+  loteMatrizService,
   PROPRIETARIO_LABEL,
   type ProtocoloIatf,
 } from "@/domain";
@@ -30,6 +32,13 @@ import {
   formatDate,
   calcularIdade,
 } from "@/lib/matrizUi";
+import {
+  indicadoresIniciais,
+  indicadoresFinais,
+  formatKg,
+  formatArrobasPorMatriz,
+  NOTA_ESTIMATIVA,
+} from "@/lib/lotesCalculos";
 
 export const Route = createFileRoute("/_app/matrizes/$id")({
   head: () => ({
