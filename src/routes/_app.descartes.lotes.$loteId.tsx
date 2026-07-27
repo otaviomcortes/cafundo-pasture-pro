@@ -70,6 +70,17 @@ import {
   toDateInput,
   formatReais,
 } from "@/lib/loteFrigorificoUi";
+import {
+  indicadoresIniciais,
+  indicadoresFinais,
+  calcularComparativo,
+  formatKg,
+  formatArrobas,
+  formatArrobasPorMatriz,
+  formatPercent,
+  NOTA_ESTIMATIVA,
+  type IndicadoresPeso,
+} from "@/lib/lotesCalculos";
 
 export const Route = createFileRoute("/_app/descartes/lotes/$loteId")({
   head: () => ({ meta: [{ title: "Lote para Frigorífico — Cafundó" }] }),
