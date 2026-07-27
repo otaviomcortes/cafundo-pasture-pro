@@ -240,11 +240,37 @@ function LoteDetalhePage() {
       !matrizesComDescarte.has(m.id),
   );
 
-  const totalPesoInicial = membros.reduce(
-    (s, m) => s + (m.pesoInicial ?? 0),
+  const indInicial = indicadoresIniciais(membros);
+  const indFinal = indicadoresFinais(membros);
+  const totalMatrizes = membros.length;
+  const semPesoFinal = totalMatrizes - indFinal.quantidade;
+
+  // Ganho de peso vivo — apenas considerando matrizes com AMBOS pesos.
+  const membrosCompletos = membros.filter(
+    (m) =>
+      typeof m.pesoInicial === "number" &&
+      m.pesoInicial > 0 &&
+      typeof m.pesoFinal === "number" &&
+      m.pesoFinal > 0,
+  );
+  const ganhoTotal = membrosCompletos.reduce(
+    (s, m) => s + ((m.pesoFinal ?? 0) - (m.pesoInicial ?? 0)),
     0,
   );
-  const totalPesoFinal = membros.reduce((s, m) => s + (m.pesoFinal ?? 0), 0);
+  const ganhoMedio =
+    membrosCompletos.length > 0 ? ganhoTotal / membrosCompletos.length : 0;
+  const diasConfinamento = (() => {
+    const inicio = new Date(lote.dataInicioConfinamento).getTime();
+    const fim = lote.dataEnvio ? new Date(lote.dataEnvio).getTime() : Date.now();
+    const dias = Math.max(1, Math.round((fim - inicio) / (1000 * 60 * 60 * 24)));
+    return dias;
+  })();
+  const gmd = membrosCompletos.length > 0 ? ganhoMedio / diasConfinamento : 0;
+
+  const comparativo = calcularComparativo(
+    indFinal.arrobasPorMatriz,
+    lote.arrobasPorMatrizInformada ?? 0,
+  );
 
   return (
     <div className="space-y-6">
@@ -282,14 +308,12 @@ function LoteDetalhePage() {
       <Card className="p-6 shadow-[var(--shadow-card)]">
         <h2 className="font-display text-lg font-semibold">Dados do lote</h2>
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-          <Info label="Matrizes no lote" value={membros.length} />
-          <Info label="Peso inicial total (kg)" value={totalPesoInicial ? totalPesoInicial.toLocaleString("pt-BR") : "—"} />
-          <Info label="Peso final total (kg)" value={totalPesoFinal ? totalPesoFinal.toLocaleString("pt-BR") : "—"} />
+          <Info label="Matrizes no lote" value={totalMatrizes} />
           <Info label="Data de envio" value={formatDate(lote.dataEnvio)} />
           <Info label="Frigorífico" value={lote.frigorifico ?? "—"} />
           <Info
-            label="Peso informado pelo frigorífico (kg)"
-            value={lote.pesoTotalInformado ? lote.pesoTotalInformado.toLocaleString("pt-BR") : "—"}
+            label="Peso informado pelo frigorífico"
+            value={formatKg(lote.pesoTotalInformado)}
           />
           <Info label="Valor recebido" value={formatReais(lote.valorRecebido)} />
           <div className="col-span-2 md:col-span-3">
@@ -298,6 +322,49 @@ function LoteDetalhePage() {
           </div>
         </dl>
       </Card>
+
+      {/* Indicadores — Entrada no confinamento */}
+      <IndicadoresCard
+        titulo="Entrada no confinamento"
+        indicadores={indInicial}
+        totalMatrizes={totalMatrizes}
+      />
+
+      {/* Indicadores — Saída do confinamento */}
+      <IndicadoresCard
+        titulo="Saída do confinamento"
+        indicadores={indFinal}
+        totalMatrizes={totalMatrizes}
+        parcial={semPesoFinal > 0 ? { faltam: semPesoFinal } : undefined}
+        extras={
+          <>
+            <Info
+              label="Ganho de peso vivo total"
+              value={membrosCompletos.length > 0 ? formatKg(ganhoTotal) : "—"}
+            />
+            <Info
+              label="Ganho médio de peso vivo por matriz"
+              value={membrosCompletos.length > 0 ? formatKg(ganhoMedio) : "—"}
+            />
+            <Info
+              label="Ganho médio diário (GMD)"
+              value={membrosCompletos.length > 0 ? formatKg(gmd) : "—"}
+            />
+          </>
+        }
+      />
+
+      {/* Resultado do frigorífico */}
+      <ResultadoFrigorificoCard
+        finalizado={finalizado}
+        arrobasInformada={lote.arrobasPorMatrizInformada}
+        mediaEstimadaFinal={indFinal.arrobasPorMatriz}
+        temPesoFinal={indFinal.quantidade > 0}
+        comparativo={comparativo}
+        onSalvar={(v) => atualizarArrobasInformadaMut.mutate(v)}
+        salvando={atualizarArrobasInformadaMut.isPending}
+      />
+
 
       {/* Matrizes */}
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
