@@ -632,16 +632,19 @@ function FinalizarDialog({
   open,
   onOpenChange,
   submitting,
+  arrobasInformadaAtual,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   submitting: boolean;
+  arrobasInformadaAtual?: number;
   onConfirm: (dados: {
     dataEnvio: string;
     frigorifico?: string;
     pesoTotalInformado?: number;
     valorRecebido?: number;
+    arrobasPorMatrizInformada?: number;
   }) => void;
 }) {
   const [dataEnvio, setDataEnvio] = useState(
@@ -650,6 +653,9 @@ function FinalizarDialog({
   const [frigorifico, setFrigorifico] = useState("");
   const [peso, setPeso] = useState("");
   const [valor, setValor] = useState("");
+  const [arrobasInf, setArrobasInf] = useState(
+    arrobasInformadaAtual !== undefined ? String(arrobasInformadaAtual) : "",
+  );
   const [erro, setErro] = useState<string | null>(null);
 
   return (
@@ -709,6 +715,24 @@ function FinalizarDialog({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="arrobasInf">
+              Média de arrobas por matriz informada pelo frigorífico (@)
+            </Label>
+            <Input
+              id="arrobasInf"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={arrobasInf}
+              onChange={(e) => setArrobasInf(e.target.value)}
+              placeholder="Ex.: 13,10"
+            />
+            <p className="text-xs text-muted-foreground">
+              Informe a média já divulgada por animal. Não será dividida novamente pela quantidade de matrizes.
+            </p>
+          </div>
           {erro && <p className="text-xs text-destructive">{erro}</p>}
         </div>
         <DialogFooter>
@@ -721,12 +745,22 @@ function FinalizarDialog({
                 setErro("Informe a data de envio.");
                 return;
               }
+              let arrobasNum: number | undefined;
+              if (arrobasInf.trim() !== "") {
+                const n = Number(arrobasInf.replace(",", "."));
+                if (!Number.isFinite(n) || n <= 0) {
+                  setErro("A média de arrobas informada deve ser maior que zero.");
+                  return;
+                }
+                arrobasNum = n;
+              }
               setErro(null);
               onConfirm({
                 dataEnvio: fromDateInput(dataEnvio),
                 frigorifico: frigorifico.trim() || undefined,
                 pesoTotalInformado: peso ? Number(peso) : undefined,
                 valorRecebido: valor ? Number(valor) : undefined,
+                arrobasPorMatrizInformada: arrobasNum,
               });
             }}
             disabled={submitting}
@@ -738,3 +772,173 @@ function FinalizarDialog({
     </Dialog>
   );
 }
+
+function IndicadoresCard({
+  titulo,
+  indicadores,
+  totalMatrizes,
+  parcial,
+  extras,
+}: {
+  titulo: string;
+  indicadores: IndicadoresPeso;
+  totalMatrizes: number;
+  parcial?: { faltam: number };
+  extras?: React.ReactNode;
+}) {
+  const { quantidade, pesoVivoTotal, pesoVivoMedio, pesoCarcaca, arrobasTotais, arrobasPorMatriz } = indicadores;
+  const vazio = quantidade === 0;
+  return (
+    <Card className="p-6 shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold">{titulo}</h2>
+        {parcial && parcial.faltam > 0 && quantidade > 0 && (
+          <span className="text-xs text-muted-foreground">
+            Média calculada com {quantidade} de {totalMatrizes} matrizes pesadas
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{NOTA_ESTIMATIVA}</p>
+      <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+        <Info label="Matrizes consideradas" value={quantidade} />
+        <Info label="Peso vivo total" value={vazio ? "—" : formatKg(pesoVivoTotal)} />
+        <Info label="Peso vivo médio por matriz" value={vazio ? "—" : formatKg(pesoVivoMedio)} />
+        <Info label="Peso estimado de carcaça" value={vazio ? "—" : formatKg(pesoCarcaca)} />
+        <Info label="Arrobas totais estimadas" value={vazio ? "—" : formatArrobas(arrobasTotais)} />
+        <Info
+          label="Média estimada de arrobas por matriz"
+          value={vazio ? "—" : formatArrobasPorMatriz(arrobasPorMatriz)}
+        />
+        {extras}
+      </dl>
+    </Card>
+  );
+}
+
+function ResultadoFrigorificoCard({
+  finalizado,
+  arrobasInformada,
+  mediaEstimadaFinal,
+  temPesoFinal,
+  comparativo,
+  onSalvar,
+  salvando,
+}: {
+  finalizado: boolean;
+  arrobasInformada?: number;
+  mediaEstimadaFinal: number;
+  temPesoFinal: boolean;
+  comparativo: ReturnType<typeof calcularComparativo>;
+  onSalvar: (v: number | undefined) => void;
+  salvando: boolean;
+}) {
+  const [local, setLocal] = useState<string>(
+    arrobasInformada !== undefined ? String(arrobasInformada) : "",
+  );
+  const [erroLocal, setErroLocal] = useState<string | null>(null);
+
+  const sinal =
+    comparativo && comparativo.diferencaArrobas > 0
+      ? "+"
+      : comparativo && comparativo.diferencaArrobas < 0
+        ? ""
+        : "";
+  const textoInterpretacao = (() => {
+    if (!comparativo) return null;
+    if (comparativo.diferencaArrobas > 0)
+      return "O frigorífico informou uma média inferior à estimada pelo sistema.";
+    if (comparativo.diferencaArrobas < 0)
+      return "O frigorífico informou uma média superior à estimada pelo sistema.";
+    return "Os valores são equivalentes.";
+  })();
+
+  return (
+    <Card className="p-6 shadow-[var(--shadow-card)]">
+      <h2 className="font-display text-lg font-semibold">Resultado do frigorífico</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Informe a média de arrobas de carcaça por matriz divulgada pelo frigorífico para comparação.
+      </p>
+
+      {!finalizado ? (
+        <div className="mt-4 space-y-2 max-w-md">
+          <Label htmlFor="arrobasInfCampo">
+            Média de arrobas por matriz informada pelo frigorífico (@)
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="arrobasInfCampo"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={local}
+              onChange={(e) => setLocal(e.target.value)}
+              placeholder="Ex.: 13,10"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={salvando}
+              onClick={() => {
+                if (local.trim() === "") {
+                  setErroLocal(null);
+                  onSalvar(undefined);
+                  return;
+                }
+                const n = Number(local.replace(",", "."));
+                if (!Number.isFinite(n) || n <= 0) {
+                  setErroLocal("Informe um valor maior que zero.");
+                  return;
+                }
+                setErroLocal(null);
+                onSalvar(n);
+              }}
+            >
+              Salvar
+            </Button>
+          </div>
+          {erroLocal && <p className="text-xs text-destructive">{erroLocal}</p>}
+        </div>
+      ) : null}
+
+      <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+        <Info
+          label="Média informada pelo frigorífico"
+          value={formatArrobasPorMatriz(arrobasInformada)}
+        />
+        <Info
+          label="Média final estimada pelo sistema"
+          value={temPesoFinal ? formatArrobasPorMatriz(mediaEstimadaFinal) : "—"}
+        />
+        {comparativo ? (
+          <>
+            <Info
+              label="Diferença em arrobas por matriz"
+              value={`${sinal}${formatArrobas(comparativo.diferencaArrobas)}`}
+            />
+            <Info
+              label="Diferença em carcaça por matriz"
+              value={`${sinal}${formatKg(comparativo.diferencaKgCarcaca)}`}
+            />
+            <Info
+              label="Diferença percentual"
+              value={`${sinal}${formatPercent(comparativo.diferencaPercentual)}`}
+            />
+            <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
+              {textoInterpretacao}
+            </div>
+          </>
+        ) : (
+          <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
+            {arrobasInformada === undefined
+              ? "Informe a média do frigorífico para ver a comparação."
+              : !temPesoFinal
+                ? "Registre os pesos finais das matrizes para calcular a comparação."
+                : null}
+          </div>
+        )}
+      </dl>
+    </Card>
+  );
+}
+
