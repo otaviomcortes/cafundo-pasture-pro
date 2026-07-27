@@ -177,6 +177,7 @@ function LoteDetalhePage() {
       frigorifico?: string;
       pesoTotalInformado?: number;
       valorRecebido?: number;
+      arrobasPorMatrizInformada?: number;
     }) => loteFrigorificoService.finalizar(loteId, dados),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lote", loteId] });
@@ -187,6 +188,15 @@ function LoteDetalhePage() {
       setFinalizarOpen(false);
     },
     onError: () => toast.error("Não foi possível finalizar o lote."),
+  });
+
+  const atualizarArrobasInformadaMut = useMutation({
+    mutationFn: async (valor: number | undefined) =>
+      loteFrigorificoService.atualizar(loteId, { arrobasPorMatrizInformada: valor }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lote", loteId] });
+    },
+    onError: () => toast.error("Não foi possível salvar o valor."),
   });
 
   const removerLoteMut = useMutation({
