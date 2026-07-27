@@ -267,7 +267,13 @@ export const loteFrigorificoService = {
   },
   finalizar: (
     id: string,
-    dados: { dataEnvio: string; frigorifico?: string; pesoTotalInformado?: number; valorRecebido?: number },
+    dados: {
+      dataEnvio: string;
+      frigorifico?: string;
+      pesoTotalInformado?: number;
+      valorRecebido?: number;
+      arrobasPorMatrizInformada?: number;
+    },
   ) => {
     const l = mockLotesFrigorifico.find((x) => x.id === id);
     if (l) {
@@ -276,6 +282,7 @@ export const loteFrigorificoService = {
       l.frigorifico = dados.frigorifico;
       l.pesoTotalInformado = dados.pesoTotalInformado;
       l.valorRecebido = dados.valorRecebido;
+      l.arrobasPorMatrizInformada = dados.arrobasPorMatrizInformada;
       l.atualizadoEm = nowIso();
       // Marca todas as matrizes do lote como descartadas.
       const membros = mockLoteMatrizes.filter((lm) => lm.loteId === id);

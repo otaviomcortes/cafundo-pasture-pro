@@ -8,6 +8,8 @@ export interface LoteFrigorifico {
   frigorifico?: string;
   pesoTotalInformado?: number; // kg (informado pelo frigorífico)
   valorRecebido?: number; // R$
+  /** Média de arrobas de carcaça por matriz informada pelo frigorífico (@/matriz). */
+  arrobasPorMatrizInformada?: number;
   observacoes?: string;
   status: StatusLoteFrigorifico;
   criadoEm: string;

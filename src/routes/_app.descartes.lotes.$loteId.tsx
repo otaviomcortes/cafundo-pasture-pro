@@ -70,6 +70,17 @@ import {
   toDateInput,
   formatReais,
 } from "@/lib/loteFrigorificoUi";
+import {
+  indicadoresIniciais,
+  indicadoresFinais,
+  calcularComparativo,
+  formatKg,
+  formatArrobas,
+  formatArrobasPorMatriz,
+  formatPercent,
+  NOTA_ESTIMATIVA,
+  type IndicadoresPeso,
+} from "@/lib/lotesCalculos";
 
 export const Route = createFileRoute("/_app/descartes/lotes/$loteId")({
   head: () => ({ meta: [{ title: "Lote para Frigorífico — Cafundó" }] }),
@@ -166,6 +177,7 @@ function LoteDetalhePage() {
       frigorifico?: string;
       pesoTotalInformado?: number;
       valorRecebido?: number;
+      arrobasPorMatrizInformada?: number;
     }) => loteFrigorificoService.finalizar(loteId, dados),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lote", loteId] });
@@ -176,6 +188,15 @@ function LoteDetalhePage() {
       setFinalizarOpen(false);
     },
     onError: () => toast.error("Não foi possível finalizar o lote."),
+  });
+
+  const atualizarArrobasInformadaMut = useMutation({
+    mutationFn: async (valor: number | undefined) =>
+      loteFrigorificoService.atualizar(loteId, { arrobasPorMatrizInformada: valor }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lote", loteId] });
+    },
+    onError: () => toast.error("Não foi possível salvar o valor."),
   });
 
   const removerLoteMut = useMutation({
@@ -219,11 +240,37 @@ function LoteDetalhePage() {
       !matrizesComDescarte.has(m.id),
   );
 
-  const totalPesoInicial = membros.reduce(
-    (s, m) => s + (m.pesoInicial ?? 0),
+  const indInicial = indicadoresIniciais(membros);
+  const indFinal = indicadoresFinais(membros);
+  const totalMatrizes = membros.length;
+  const semPesoFinal = totalMatrizes - indFinal.quantidade;
+
+  // Ganho de peso vivo — apenas considerando matrizes com AMBOS pesos.
+  const membrosCompletos = membros.filter(
+    (m) =>
+      typeof m.pesoInicial === "number" &&
+      m.pesoInicial > 0 &&
+      typeof m.pesoFinal === "number" &&
+      m.pesoFinal > 0,
+  );
+  const ganhoTotal = membrosCompletos.reduce(
+    (s, m) => s + ((m.pesoFinal ?? 0) - (m.pesoInicial ?? 0)),
     0,
   );
-  const totalPesoFinal = membros.reduce((s, m) => s + (m.pesoFinal ?? 0), 0);
+  const ganhoMedio =
+    membrosCompletos.length > 0 ? ganhoTotal / membrosCompletos.length : 0;
+  const diasConfinamento = (() => {
+    const inicio = new Date(lote.dataInicioConfinamento).getTime();
+    const fim = lote.dataEnvio ? new Date(lote.dataEnvio).getTime() : Date.now();
+    const dias = Math.max(1, Math.round((fim - inicio) / (1000 * 60 * 60 * 24)));
+    return dias;
+  })();
+  const gmd = membrosCompletos.length > 0 ? ganhoMedio / diasConfinamento : 0;
+
+  const comparativo = calcularComparativo(
+    indFinal.arrobasPorMatriz,
+    lote.arrobasPorMatrizInformada ?? 0,
+  );
 
   return (
     <div className="space-y-6">
@@ -261,14 +308,12 @@ function LoteDetalhePage() {
       <Card className="p-6 shadow-[var(--shadow-card)]">
         <h2 className="font-display text-lg font-semibold">Dados do lote</h2>
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-          <Info label="Matrizes no lote" value={membros.length} />
-          <Info label="Peso inicial total (kg)" value={totalPesoInicial ? totalPesoInicial.toLocaleString("pt-BR") : "—"} />
-          <Info label="Peso final total (kg)" value={totalPesoFinal ? totalPesoFinal.toLocaleString("pt-BR") : "—"} />
+          <Info label="Matrizes no lote" value={totalMatrizes} />
           <Info label="Data de envio" value={formatDate(lote.dataEnvio)} />
           <Info label="Frigorífico" value={lote.frigorifico ?? "—"} />
           <Info
-            label="Peso informado pelo frigorífico (kg)"
-            value={lote.pesoTotalInformado ? lote.pesoTotalInformado.toLocaleString("pt-BR") : "—"}
+            label="Peso informado pelo frigorífico"
+            value={formatKg(lote.pesoTotalInformado)}
           />
           <Info label="Valor recebido" value={formatReais(lote.valorRecebido)} />
           <div className="col-span-2 md:col-span-3">
@@ -277,6 +322,49 @@ function LoteDetalhePage() {
           </div>
         </dl>
       </Card>
+
+      {/* Indicadores — Entrada no confinamento */}
+      <IndicadoresCard
+        titulo="Entrada no confinamento"
+        indicadores={indInicial}
+        totalMatrizes={totalMatrizes}
+      />
+
+      {/* Indicadores — Saída do confinamento */}
+      <IndicadoresCard
+        titulo="Saída do confinamento"
+        indicadores={indFinal}
+        totalMatrizes={totalMatrizes}
+        parcial={semPesoFinal > 0 ? { faltam: semPesoFinal } : undefined}
+        extras={
+          <>
+            <Info
+              label="Ganho de peso vivo total"
+              value={membrosCompletos.length > 0 ? formatKg(ganhoTotal) : "—"}
+            />
+            <Info
+              label="Ganho médio de peso vivo por matriz"
+              value={membrosCompletos.length > 0 ? formatKg(ganhoMedio) : "—"}
+            />
+            <Info
+              label="Ganho médio diário (GMD)"
+              value={membrosCompletos.length > 0 ? formatKg(gmd) : "—"}
+            />
+          </>
+        }
+      />
+
+      {/* Resultado do frigorífico */}
+      <ResultadoFrigorificoCard
+        finalizado={finalizado}
+        arrobasInformada={lote.arrobasPorMatrizInformada}
+        mediaEstimadaFinal={indFinal.arrobasPorMatriz}
+        temPesoFinal={indFinal.quantidade > 0}
+        comparativo={comparativo}
+        onSalvar={(v) => atualizarArrobasInformadaMut.mutate(v)}
+        salvando={atualizarArrobasInformadaMut.isPending}
+      />
+
 
       {/* Matrizes */}
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
@@ -391,6 +479,7 @@ function LoteDetalhePage() {
         open={finalizarOpen}
         onOpenChange={setFinalizarOpen}
         submitting={finalizarMut.isPending}
+        arrobasInformadaAtual={lote.arrobasPorMatrizInformada}
         onConfirm={(dados) => finalizarMut.mutate(dados)}
       />
 
@@ -543,16 +632,19 @@ function FinalizarDialog({
   open,
   onOpenChange,
   submitting,
+  arrobasInformadaAtual,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   submitting: boolean;
+  arrobasInformadaAtual?: number;
   onConfirm: (dados: {
     dataEnvio: string;
     frigorifico?: string;
     pesoTotalInformado?: number;
     valorRecebido?: number;
+    arrobasPorMatrizInformada?: number;
   }) => void;
 }) {
   const [dataEnvio, setDataEnvio] = useState(
@@ -561,6 +653,9 @@ function FinalizarDialog({
   const [frigorifico, setFrigorifico] = useState("");
   const [peso, setPeso] = useState("");
   const [valor, setValor] = useState("");
+  const [arrobasInf, setArrobasInf] = useState(
+    arrobasInformadaAtual !== undefined ? String(arrobasInformadaAtual) : "",
+  );
   const [erro, setErro] = useState<string | null>(null);
 
   return (
@@ -620,6 +715,24 @@ function FinalizarDialog({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="arrobasInf">
+              Média de arrobas por matriz informada pelo frigorífico (@)
+            </Label>
+            <Input
+              id="arrobasInf"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={arrobasInf}
+              onChange={(e) => setArrobasInf(e.target.value)}
+              placeholder="Ex.: 13,10"
+            />
+            <p className="text-xs text-muted-foreground">
+              Informe a média já divulgada por animal. Não será dividida novamente pela quantidade de matrizes.
+            </p>
+          </div>
           {erro && <p className="text-xs text-destructive">{erro}</p>}
         </div>
         <DialogFooter>
@@ -632,12 +745,22 @@ function FinalizarDialog({
                 setErro("Informe a data de envio.");
                 return;
               }
+              let arrobasNum: number | undefined;
+              if (arrobasInf.trim() !== "") {
+                const n = Number(arrobasInf.replace(",", "."));
+                if (!Number.isFinite(n) || n <= 0) {
+                  setErro("A média de arrobas informada deve ser maior que zero.");
+                  return;
+                }
+                arrobasNum = n;
+              }
               setErro(null);
               onConfirm({
                 dataEnvio: fromDateInput(dataEnvio),
                 frigorifico: frigorifico.trim() || undefined,
                 pesoTotalInformado: peso ? Number(peso) : undefined,
                 valorRecebido: valor ? Number(valor) : undefined,
+                arrobasPorMatrizInformada: arrobasNum,
               });
             }}
             disabled={submitting}
@@ -649,3 +772,173 @@ function FinalizarDialog({
     </Dialog>
   );
 }
+
+function IndicadoresCard({
+  titulo,
+  indicadores,
+  totalMatrizes,
+  parcial,
+  extras,
+}: {
+  titulo: string;
+  indicadores: IndicadoresPeso;
+  totalMatrizes: number;
+  parcial?: { faltam: number };
+  extras?: React.ReactNode;
+}) {
+  const { quantidade, pesoVivoTotal, pesoVivoMedio, pesoCarcaca, arrobasTotais, arrobasPorMatriz } = indicadores;
+  const vazio = quantidade === 0;
+  return (
+    <Card className="p-6 shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold">{titulo}</h2>
+        {parcial && parcial.faltam > 0 && quantidade > 0 && (
+          <span className="text-xs text-muted-foreground">
+            Média calculada com {quantidade} de {totalMatrizes} matrizes pesadas
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{NOTA_ESTIMATIVA}</p>
+      <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+        <Info label="Matrizes consideradas" value={quantidade} />
+        <Info label="Peso vivo total" value={vazio ? "—" : formatKg(pesoVivoTotal)} />
+        <Info label="Peso vivo médio por matriz" value={vazio ? "—" : formatKg(pesoVivoMedio)} />
+        <Info label="Peso estimado de carcaça" value={vazio ? "—" : formatKg(pesoCarcaca)} />
+        <Info label="Arrobas totais estimadas" value={vazio ? "—" : formatArrobas(arrobasTotais)} />
+        <Info
+          label="Média estimada de arrobas por matriz"
+          value={vazio ? "—" : formatArrobasPorMatriz(arrobasPorMatriz)}
+        />
+        {extras}
+      </dl>
+    </Card>
+  );
+}
+
+function ResultadoFrigorificoCard({
+  finalizado,
+  arrobasInformada,
+  mediaEstimadaFinal,
+  temPesoFinal,
+  comparativo,
+  onSalvar,
+  salvando,
+}: {
+  finalizado: boolean;
+  arrobasInformada?: number;
+  mediaEstimadaFinal: number;
+  temPesoFinal: boolean;
+  comparativo: ReturnType<typeof calcularComparativo>;
+  onSalvar: (v: number | undefined) => void;
+  salvando: boolean;
+}) {
+  const [local, setLocal] = useState<string>(
+    arrobasInformada !== undefined ? String(arrobasInformada) : "",
+  );
+  const [erroLocal, setErroLocal] = useState<string | null>(null);
+
+  const sinal =
+    comparativo && comparativo.diferencaArrobas > 0
+      ? "+"
+      : comparativo && comparativo.diferencaArrobas < 0
+        ? ""
+        : "";
+  const textoInterpretacao = (() => {
+    if (!comparativo) return null;
+    if (comparativo.diferencaArrobas > 0)
+      return "O frigorífico informou uma média inferior à estimada pelo sistema.";
+    if (comparativo.diferencaArrobas < 0)
+      return "O frigorífico informou uma média superior à estimada pelo sistema.";
+    return "Os valores são equivalentes.";
+  })();
+
+  return (
+    <Card className="p-6 shadow-[var(--shadow-card)]">
+      <h2 className="font-display text-lg font-semibold">Resultado do frigorífico</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Informe a média de arrobas de carcaça por matriz divulgada pelo frigorífico para comparação.
+      </p>
+
+      {!finalizado ? (
+        <div className="mt-4 space-y-2 max-w-md">
+          <Label htmlFor="arrobasInfCampo">
+            Média de arrobas por matriz informada pelo frigorífico (@)
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="arrobasInfCampo"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={local}
+              onChange={(e) => setLocal(e.target.value)}
+              placeholder="Ex.: 13,10"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={salvando}
+              onClick={() => {
+                if (local.trim() === "") {
+                  setErroLocal(null);
+                  onSalvar(undefined);
+                  return;
+                }
+                const n = Number(local.replace(",", "."));
+                if (!Number.isFinite(n) || n <= 0) {
+                  setErroLocal("Informe um valor maior que zero.");
+                  return;
+                }
+                setErroLocal(null);
+                onSalvar(n);
+              }}
+            >
+              Salvar
+            </Button>
+          </div>
+          {erroLocal && <p className="text-xs text-destructive">{erroLocal}</p>}
+        </div>
+      ) : null}
+
+      <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+        <Info
+          label="Média informada pelo frigorífico"
+          value={formatArrobasPorMatriz(arrobasInformada)}
+        />
+        <Info
+          label="Média final estimada pelo sistema"
+          value={temPesoFinal ? formatArrobasPorMatriz(mediaEstimadaFinal) : "—"}
+        />
+        {comparativo ? (
+          <>
+            <Info
+              label="Diferença em arrobas por matriz"
+              value={`${sinal}${formatArrobas(comparativo.diferencaArrobas)}`}
+            />
+            <Info
+              label="Diferença em carcaça por matriz"
+              value={`${sinal}${formatKg(comparativo.diferencaKgCarcaca)}`}
+            />
+            <Info
+              label="Diferença percentual"
+              value={`${sinal}${formatPercent(comparativo.diferencaPercentual)}`}
+            />
+            <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
+              {textoInterpretacao}
+            </div>
+          </>
+        ) : (
+          <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
+            {arrobasInformada === undefined
+              ? "Informe a média do frigorífico para ver a comparação."
+              : !temPesoFinal
+                ? "Registre os pesos finais das matrizes para calcular a comparação."
+                : null}
+          </div>
+        )}
+      </dl>
+    </Card>
+  );
+}
+
