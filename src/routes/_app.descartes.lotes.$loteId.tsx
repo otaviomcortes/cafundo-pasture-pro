@@ -479,6 +479,7 @@ function LoteDetalhePage() {
         open={finalizarOpen}
         onOpenChange={setFinalizarOpen}
         submitting={finalizarMut.isPending}
+        arrobasInformadaAtual={lote.arrobasPorMatrizInformada}
         onConfirm={(dados) => finalizarMut.mutate(dados)}
       />
 
