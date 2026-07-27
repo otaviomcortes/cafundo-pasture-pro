@@ -369,12 +369,16 @@ function MatrizDetalhePage() {
   );
 }
 
+type DescarteMatriz = Awaited<
+  ReturnType<typeof descarteService.listarPorMatriz>
+>[number];
+
 function DescarteMatrizCard({
   matrizId,
   descarte,
 }: {
   matrizId: string;
-  descarte: (typeof mockDescarteType) | undefined;
+  descarte: DescarteMatriz | undefined;
 }) {
   const loteQ = useQuery({
     queryKey: ["lote", descarte?.loteId],
