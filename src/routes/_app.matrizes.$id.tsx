@@ -483,8 +483,6 @@ function DescarteMatrizCard({
   );
 }
 
-// Tipo auxiliar apenas para inferência do prop 'descarte'.
-type mockDescarteType = Awaited<ReturnType<typeof descarteService.listarPorMatriz>>[number];
 
 
 function Info({
