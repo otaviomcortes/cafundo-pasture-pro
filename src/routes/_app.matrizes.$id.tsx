@@ -364,47 +364,124 @@ function MatrizDetalhePage() {
       </SecaoHistorico>
 
       {/* Descarte */}
-      <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
-        <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-5 py-4">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <PackageMinus className="h-5 w-5" />
-          </span>
-          <h2 className="font-display text-lg font-semibold">Informações de Descarte</h2>
-        </div>
-        {descartes.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-            Matriz sem registro de descarte.
-          </div>
-        ) : (
-          <div className="p-5">
-            {(() => {
-              const d = descartes[0];
-              return (
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                  <Info label="Tipo" value={d.tipoDescarte === "lote" ? "Lote para Frigorífico" : "Individual"} />
-                  <Info label="Data do descarte" value={formatDate(d.dataDescarte)} />
-                  <Info
-                    label="Motivo"
-                    value={d.motivo ? (MOTIVO_DESCARTE_LABEL[d.motivo] ?? d.motivo) : "—"}
-                  />
-                  <Info label="Peso (kg)" value={d.peso ?? "—"} />
-                  <Info
-                    label="Destino"
-                    value={d.destino ? (DESTINO_DESCARTE_LABEL[d.destino] ?? d.destino) : "—"}
-                  />
-                  <div className="col-span-2 md:col-span-3">
-                    <dt className="text-xs text-muted-foreground">Observações</dt>
-                    <dd className="font-medium">{d.observacoes ?? "—"}</dd>
-                  </div>
-                </dl>
-              );
-            })()}
-          </div>
-        )}
-      </Card>
+      <DescarteMatrizCard matrizId={id} descarte={descartes[0]} />
     </div>
   );
 }
+
+function DescarteMatrizCard({
+  matrizId,
+  descarte,
+}: {
+  matrizId: string;
+  descarte: (typeof mockDescarteType) | undefined;
+}) {
+  const loteQ = useQuery({
+    queryKey: ["lote", descarte?.loteId],
+    queryFn: () =>
+      descarte?.loteId
+        ? loteFrigorificoService.buscarPorId(descarte.loteId)
+        : Promise.resolve(undefined),
+    enabled: !!descarte?.loteId,
+  });
+  const membrosQ = useQuery({
+    queryKey: ["loteMatrizes", descarte?.loteId],
+    queryFn: () =>
+      descarte?.loteId
+        ? loteMatrizService.listarPorLote(descarte.loteId)
+        : Promise.resolve([]),
+    enabled: !!descarte?.loteId,
+  });
+  const minhaQ = useQuery({
+    queryKey: ["loteMatriz", "matriz", matrizId],
+    queryFn: () => loteMatrizService.buscarPorMatriz(matrizId),
+    enabled: !!descarte?.loteId,
+  });
+
+  const lote = loteQ.data;
+  const membros = membrosQ.data ?? [];
+  const minha = minhaQ.data;
+  const indInicial = indicadoresIniciais(membros);
+  const indFinal = indicadoresFinais(membros);
+  const ganhoIndividual =
+    minha && typeof minha.pesoInicial === "number" && typeof minha.pesoFinal === "number"
+      ? minha.pesoFinal - minha.pesoInicial
+      : undefined;
+
+  return (
+    <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
+      <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-5 py-4">
+        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <PackageMinus className="h-5 w-5" />
+        </span>
+        <h2 className="font-display text-lg font-semibold">Informações de Descarte</h2>
+      </div>
+      {!descarte ? (
+        <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+          Matriz sem registro de descarte.
+        </div>
+      ) : (
+        <div className="space-y-6 p-5">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+            <Info label="Tipo" value={descarte.tipoDescarte === "lote" ? "Lote para Frigorífico" : "Individual"} />
+            <Info label="Data do descarte" value={formatDate(descarte.dataDescarte)} />
+            <Info
+              label="Motivo"
+              value={descarte.motivo ? (MOTIVO_DESCARTE_LABEL[descarte.motivo] ?? descarte.motivo) : "—"}
+            />
+            <Info label="Peso (kg)" value={descarte.peso ?? "—"} />
+            <Info
+              label="Destino"
+              value={descarte.destino ? (DESTINO_DESCARTE_LABEL[descarte.destino] ?? descarte.destino) : "—"}
+            />
+            <div className="col-span-2 md:col-span-3">
+              <dt className="text-xs text-muted-foreground">Observações</dt>
+              <dd className="font-medium">{descarte.observacoes ?? "—"}</dd>
+            </div>
+          </dl>
+
+          {descarte.tipoDescarte === "lote" && lote && (
+            <div className="rounded-md border border-border bg-secondary/30 p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-display text-base font-semibold">
+                  Lote: {lote.nome}
+                </h3>
+                <span className="text-xs text-muted-foreground">
+                  Valores em arrobas são médias do lote, não cálculos individuais desta matriz.
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{NOTA_ESTIMATIVA}</p>
+              <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+                <Info label="Peso inicial (individual)" value={formatKg(minha?.pesoInicial)} />
+                <Info label="Peso final (individual)" value={formatKg(minha?.pesoFinal)} />
+                <Info
+                  label="Ganho de peso vivo (individual)"
+                  value={ganhoIndividual !== undefined ? formatKg(ganhoIndividual) : "—"}
+                />
+                <Info
+                  label="Média inicial estimada (lote)"
+                  value={indInicial.quantidade > 0 ? formatArrobasPorMatriz(indInicial.arrobasPorMatriz) : "—"}
+                />
+                <Info
+                  label="Média final estimada (lote)"
+                  value={indFinal.quantidade > 0 ? formatArrobasPorMatriz(indFinal.arrobasPorMatriz) : "—"}
+                />
+                <Info
+                  label="Média informada pelo frigorífico (lote)"
+                  value={formatArrobasPorMatriz(lote.arrobasPorMatrizInformada)}
+                />
+              </dl>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// Tipo auxiliar apenas para inferência do prop 'descarte'.
+type mockDescarteType = Awaited<ReturnType<typeof descarteService.listarPorMatriz>>[number];
+
 
 function Info({
   label,
