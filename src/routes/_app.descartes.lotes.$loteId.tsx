@@ -1,20 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Check,
-  ChevronsUpDown,
-  Plus,
-  Trash2,
-  PackageCheck,
-} from "lucide-react";
+import { ArrowLeft, Plus, Trash2, PackageCheck, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -23,19 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +36,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
 import {
   loteFrigorificoService,
   loteMatrizService,
@@ -75,11 +56,10 @@ import {
   indicadoresFinais,
   calcularComparativo,
   formatKg,
-  formatArrobas,
   formatArrobasPorMatriz,
+  formatArrobas,
   formatPercent,
   NOTA_ESTIMATIVA,
-  type IndicadoresPeso,
 } from "@/lib/lotesCalculos";
 
 export const Route = createFileRoute("/_app/descartes/lotes/$loteId")({
@@ -96,22 +76,18 @@ function LoteDetalhePage() {
     queryKey: ["lote", loteId],
     queryFn: () => loteFrigorificoService.buscarPorId(loteId),
   });
-
   const membrosQ = useQuery({
     queryKey: ["loteMatrizes", loteId],
     queryFn: () => loteMatrizService.listarPorLote(loteId),
   });
-
   const matrizesQ = useQuery({
     queryKey: ["matrizes"],
     queryFn: () => matrizService.listar(),
   });
-
   const descartesQ = useQuery({
     queryKey: ["descartes"],
     queryFn: () => descarteService.listar(),
   });
-
   const todosLoteMatQ = useQuery({
     queryKey: ["loteMatrizes"],
     queryFn: () => loteMatrizService.listar(),
@@ -134,15 +110,34 @@ function LoteDetalhePage() {
   const [confirmDeleteLote, setConfirmDeleteLote] = useState(false);
   const [finalizarOpen, setFinalizarOpen] = useState(false);
 
-  const adicionarMut = useMutation({
-    mutationFn: async (matrizId: string) =>
-      loteMatrizService.adicionar({ loteId, matrizId }),
+  const salvarDadosMut = useMutation({
+    mutationFn: async (patch: {
+      nome?: string;
+      dataInicioConfinamento?: string;
+      observacoes?: string;
+    }) => loteFrigorificoService.atualizar(loteId, patch),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lote", loteId] });
+      qc.invalidateQueries({ queryKey: ["lotes"] });
+    },
+    onError: () => toast.error("Não foi possível salvar os dados do lote."),
+  });
+
+  const adicionarMut = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const matrizId of ids) {
+        await loteMatrizService.adicionar({ loteId, matrizId });
+      }
+      return ids.length;
+    },
+    onSuccess: (qtd) => {
       qc.invalidateQueries({ queryKey: ["loteMatrizes"] });
       qc.invalidateQueries({ queryKey: ["loteMatrizes", loteId] });
-      toast.success("Matriz adicionada ao lote.");
+      toast.success(
+        qtd === 1 ? "1 matriz adicionada ao lote." : `${qtd} matrizes adicionadas ao lote.`,
+      );
     },
-    onError: () => toast.error("Não foi possível adicionar a matriz."),
+    onError: () => toast.error("Não foi possível adicionar as matrizes."),
   });
 
   const atualizarPesoMut = useMutation({
@@ -175,7 +170,6 @@ function LoteDetalhePage() {
     mutationFn: async (dados: {
       dataEnvio: string;
       frigorifico?: string;
-      pesoTotalInformado?: number;
       valorRecebido?: number;
       arrobasPorMatrizInformada?: number;
     }) => loteFrigorificoService.finalizar(loteId, dados),
@@ -188,15 +182,6 @@ function LoteDetalhePage() {
       setFinalizarOpen(false);
     },
     onError: () => toast.error("Não foi possível finalizar o lote."),
-  });
-
-  const atualizarArrobasInformadaMut = useMutation({
-    mutationFn: async (valor: number | undefined) =>
-      loteFrigorificoService.atualizar(loteId, { arrobasPorMatrizInformada: valor }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["lote", loteId] });
-    },
-    onError: () => toast.error("Não foi possível salvar o valor."),
   });
 
   const removerLoteMut = useMutation({
@@ -232,7 +217,6 @@ function LoteDetalhePage() {
 
   const matrizesEmAlgumLote = new Set(todosLoteMat.map((lm) => lm.matrizId));
   const matrizesComDescarte = new Set(descartes.map((d) => d.matrizId));
-
   const disponiveis = matrizes.filter(
     (m) =>
       m.status === "ativa" &&
@@ -242,30 +226,9 @@ function LoteDetalhePage() {
 
   const indInicial = indicadoresIniciais(membros);
   const indFinal = indicadoresFinais(membros);
-  const totalMatrizes = membros.length;
-  const semPesoFinal = totalMatrizes - indFinal.quantidade;
-
-  // Ganho de peso vivo — apenas considerando matrizes com AMBOS pesos.
-  const membrosCompletos = membros.filter(
-    (m) =>
-      typeof m.pesoInicial === "number" &&
-      m.pesoInicial > 0 &&
-      typeof m.pesoFinal === "number" &&
-      m.pesoFinal > 0,
-  );
-  const ganhoTotal = membrosCompletos.reduce(
-    (s, m) => s + ((m.pesoFinal ?? 0) - (m.pesoInicial ?? 0)),
-    0,
-  );
-  const ganhoMedio =
-    membrosCompletos.length > 0 ? ganhoTotal / membrosCompletos.length : 0;
-  const diasConfinamento = (() => {
-    const inicio = new Date(lote.dataInicioConfinamento).getTime();
-    const fim = lote.dataEnvio ? new Date(lote.dataEnvio).getTime() : Date.now();
-    const dias = Math.max(1, Math.round((fim - inicio) / (1000 * 60 * 60 * 24)));
-    return dias;
-  })();
-  const gmd = membrosCompletos.length > 0 ? ganhoMedio / diasConfinamento : 0;
+  // Base de cálculo: peso final quando existir, senão peso inicial.
+  const usaFinal = indFinal.quantidade > 0;
+  const ind = usaFinal ? indFinal : indInicial;
 
   const comparativo = calcularComparativo(
     indFinal.arrobasPorMatriz,
@@ -273,128 +236,148 @@ function LoteDetalhePage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <Button asChild variant="ghost" size="sm" className="w-fit -ml-2 text-muted-foreground">
+    <div className="space-y-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="-ml-2 w-fit text-muted-foreground"
+          >
             <Link to="/descartes">
               <ArrowLeft className="mr-1 h-4 w-4" /> Voltar para Descartes
             </Link>
           </Button>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
+          <h1 className="truncate font-display text-2xl font-bold tracking-tight">
             {lote.nome}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Início do confinamento em {formatDate(lote.dataInicioConfinamento)}
-          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Badge variant="outline" className={STATUS_LOTE_BADGE[lote.status]}>
             {STATUS_LOTE_LABEL[lote.status]}
           </Badge>
           {!finalizado && (
             <Button
-              variant="destructive"
+              variant="ghost"
               size="sm"
+              className="text-destructive hover:text-destructive"
               onClick={() => setConfirmDeleteLote(true)}
             >
-              <Trash2 className="mr-1 h-4 w-4" /> Excluir Lote
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Excluir lote</span>
             </Button>
           )}
         </div>
       </div>
 
-      {/* Dados do lote */}
-      <Card className="p-6 shadow-[var(--shadow-card)]">
-        <h2 className="font-display text-lg font-semibold">Dados do lote</h2>
-        <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-          <Info label="Matrizes no lote" value={totalMatrizes} />
-          <Info label="Data de envio" value={formatDate(lote.dataEnvio)} />
-          <Info label="Frigorífico" value={lote.frigorifico ?? "—"} />
-          <Info
-            label="Peso informado pelo frigorífico"
-            value={formatKg(lote.pesoTotalInformado)}
-          />
-          <Info label="Valor recebido" value={formatReais(lote.valorRecebido)} />
-          <div className="col-span-2 md:col-span-3">
-            <dt className="text-xs text-muted-foreground">Observações</dt>
-            <dd className="font-medium">{lote.observacoes ?? "—"}</dd>
+      {/* 1. Dados do lote */}
+      <Card className="space-y-5 p-5 shadow-[var(--shadow-card)]">
+        {finalizado ? (
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-4">
+            <Info label="Nome do lote" value={lote.nome} />
+            <Info
+              label="Início do confinamento"
+              value={formatDate(lote.dataInicioConfinamento)}
+            />
+            <Info label="Data de envio" value={formatDate(lote.dataEnvio)} />
+            <Info label="Frigorífico" value={lote.frigorifico ?? "—"} />
+            <Info label="Valor recebido" value={formatReais(lote.valorRecebido)} />
+            <div className="col-span-2 md:col-span-4">
+              <dt className="text-xs text-muted-foreground">Observações</dt>
+              <dd className="font-medium">{lote.observacoes || "—"}</dd>
+            </div>
+          </dl>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-[1fr_200px]">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome do lote</Label>
+              <CampoTexto
+                id="nome"
+                value={lote.nome}
+                onSave={(v) => v.trim() && salvarDadosMut.mutate({ nome: v.trim() })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dataInicio">Início do confinamento</Label>
+              <Input
+                id="dataInicio"
+                type="date"
+                value={toDateInput(lote.dataInicioConfinamento)}
+                max={toDateInput(new Date().toISOString())}
+                onChange={(e) =>
+                  e.target.value &&
+                  salvarDadosMut.mutate({
+                    dataInicioConfinamento: fromDateInput(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="obs">Observações</Label>
+              <CampoTextarea
+                id="obs"
+                value={lote.observacoes ?? ""}
+                onSave={(v) => salvarDadosMut.mutate({ observacoes: v.trim() || undefined })}
+              />
+            </div>
           </div>
-        </dl>
+        )}
+
+        <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 md:grid-cols-4">
+          <Metric label="Matrizes no lote" value={String(membros.length)} />
+          <Metric
+            label="Peso vivo total"
+            value={ind.quantidade ? formatKg(ind.pesoVivoTotal) : "—"}
+          />
+          <Metric
+            label="Peso vivo médio"
+            value={ind.quantidade ? formatKg(ind.pesoVivoMedio) : "—"}
+          />
+          <Metric
+            label="Média estimada @/matriz"
+            value={ind.quantidade ? formatArrobasPorMatriz(ind.arrobasPorMatriz) : "—"}
+          />
+          {finalizado && (
+            <>
+              <Metric
+                label="@/matriz informada"
+                value={formatArrobasPorMatriz(lote.arrobasPorMatrizInformada)}
+              />
+              <Metric
+                label="Diferença em arrobas"
+                value={comparativo ? formatArrobas(comparativo.diferencaArrobas) : "—"}
+              />
+              <Metric
+                label="Diferença percentual"
+                value={comparativo ? formatPercent(comparativo.diferencaPercentual) : "—"}
+              />
+            </>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {NOTA_ESTIMATIVA}
+          {ind.quantidade > 0 && ind.quantidade < membros.length
+            ? ` Calculado com ${ind.quantidade} de ${membros.length} matrizes pesadas.`
+            : ""}
+          {usaFinal ? " Base: pesos finais." : " Base: pesos iniciais."}
+        </p>
       </Card>
 
-      {/* Indicadores — Entrada no confinamento */}
-      <IndicadoresCard
-        titulo="Entrada no confinamento"
-        indicadores={indInicial}
-        totalMatrizes={totalMatrizes}
-      />
-
-      {/* Indicadores — Saída do confinamento */}
-      <IndicadoresCard
-        titulo="Saída do confinamento"
-        indicadores={indFinal}
-        totalMatrizes={totalMatrizes}
-        parcial={semPesoFinal > 0 ? { faltam: semPesoFinal } : undefined}
-        extras={
-          <>
-            <Info
-              label="Ganho de peso vivo total"
-              value={membrosCompletos.length > 0 ? formatKg(ganhoTotal) : "—"}
-            />
-            <Info
-              label="Ganho médio de peso vivo por matriz"
-              value={membrosCompletos.length > 0 ? formatKg(ganhoMedio) : "—"}
-            />
-            <Info
-              label="Ganho médio diário (GMD)"
-              value={membrosCompletos.length > 0 ? formatKg(gmd) : "—"}
-            />
-          </>
-        }
-      />
-
-      {/* Resultado do frigorífico */}
-      <ResultadoFrigorificoCard
-        finalizado={finalizado}
-        arrobasInformada={lote.arrobasPorMatrizInformada}
-        mediaEstimadaFinal={indFinal.arrobasPorMatriz}
-        temPesoFinal={indFinal.quantidade > 0}
-        comparativo={comparativo}
-        onSalvar={(v) => atualizarArrobasInformadaMut.mutate(v)}
-        salvando={atualizarArrobasInformadaMut.isPending}
-      />
-
-
-      {/* Matrizes */}
+      {/* 2. Matrizes do lote */}
       <Card className="overflow-hidden p-0 shadow-[var(--shadow-card)]">
-        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
-          <h2 className="font-display text-lg font-semibold">
+        <div className="flex flex-wrap items-center gap-3 border-b border-border bg-secondary/40 px-5 py-3">
+          <h2 className="font-display text-base font-semibold">
             Matrizes do lote
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {membros.length}
+            </span>
           </h2>
-          <div className="ml-auto flex items-center gap-2">
-            {!finalizado && (
-              <>
-                <AddMatrizPopover
-                  open={addOpen}
-                  onOpenChange={setAddOpen}
-                  disponiveis={disponiveis}
-                  onSelect={(id) => {
-                    setAddOpen(false);
-                    adicionarMut.mutate(id);
-                  }}
-                />
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setFinalizarOpen(true)}
-                  disabled={membros.length === 0}
-                >
-                  <PackageCheck className="mr-1 h-4 w-4" /> Finalizar Lote
-                </Button>
-              </>
-            )}
-          </div>
+          {!finalizado && (
+            <Button size="sm" className="ml-auto" onClick={() => setAddOpen(true)}>
+              <Plus className="mr-1 h-4 w-4" /> Adicionar matrizes
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <Table>
@@ -402,21 +385,32 @@ function LoteDetalhePage() {
               <TableRow>
                 <TableHead>Brinco</TableHead>
                 <TableHead>Proprietário</TableHead>
-                <TableHead className="w-40">Peso inicial (kg)</TableHead>
-                <TableHead className="w-40">Peso final (kg)</TableHead>
-                {!finalizado && <TableHead className="text-right">Ações</TableHead>}
+                <TableHead className="w-36">Peso inicial (kg)</TableHead>
+                <TableHead className="w-36">Peso final (kg)</TableHead>
+                <TableHead className="w-32">Ganho</TableHead>
+                {!finalizado && <TableHead className="w-16 text-right">Ações</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {membros.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={finalizado ? 4 : 5} className="py-10 text-center text-muted-foreground">
-                    Nenhuma matriz adicionada ao lote ainda.
+                  <TableCell
+                    colSpan={finalizado ? 5 : 6}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    Nenhuma matriz no lote. Clique em “Adicionar matrizes”.
                   </TableCell>
                 </TableRow>
               ) : (
                 membros.map((lm) => {
                   const m = matrizPorId.get(lm.matrizId);
+                  const ganho =
+                    typeof lm.pesoInicial === "number" &&
+                    lm.pesoInicial > 0 &&
+                    typeof lm.pesoFinal === "number" &&
+                    lm.pesoFinal > 0
+                      ? lm.pesoFinal - lm.pesoInicial
+                      : undefined;
                   return (
                     <TableRow key={lm.id}>
                       <TableCell className="font-medium">
@@ -440,7 +434,11 @@ function LoteDetalhePage() {
                           value={lm.pesoInicial}
                           disabled={finalizado}
                           onSave={(v) =>
-                            atualizarPesoMut.mutate({ id: lm.id, campo: "pesoInicial", valor: v })
+                            atualizarPesoMut.mutate({
+                              id: lm.id,
+                              campo: "pesoInicial",
+                              valor: v,
+                            })
                           }
                         />
                       </TableCell>
@@ -449,9 +447,26 @@ function LoteDetalhePage() {
                           value={lm.pesoFinal}
                           disabled={finalizado}
                           onSave={(v) =>
-                            atualizarPesoMut.mutate({ id: lm.id, campo: "pesoFinal", valor: v })
+                            atualizarPesoMut.mutate({
+                              id: lm.id,
+                              campo: "pesoFinal",
+                              valor: v,
+                            })
                           }
                         />
+                      </TableCell>
+                      <TableCell
+                        className={
+                          ganho === undefined
+                            ? "text-muted-foreground"
+                            : ganho >= 0
+                              ? "text-success"
+                              : "text-destructive"
+                        }
+                      >
+                        {ganho === undefined
+                          ? "—"
+                          : `${ganho > 0 ? "+" : ""}${formatKg(ganho)}`}
                       </TableCell>
                       {!finalizado && (
                         <TableCell className="text-right">
@@ -474,16 +489,33 @@ function LoteDetalhePage() {
         </div>
       </Card>
 
-      {/* Finalizar */}
-      <FinalizarDialog
+      {/* 3. Finalização */}
+      {!finalizado && (
+        <div className="flex justify-end">
+          <Button onClick={() => setFinalizarOpen(true)} disabled={membros.length === 0}>
+            <PackageCheck className="mr-1 h-4 w-4" /> Finalizar lote
+          </Button>
+        </div>
+      )}
+
+      <AdicionarMatrizesDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        disponiveis={disponiveis}
+        salvando={adicionarMut.isPending}
+        onConfirm={(ids) => {
+          setAddOpen(false);
+          if (ids.length) adicionarMut.mutate(ids);
+        }}
+      />
+
+      <FinalizarAlert
         open={finalizarOpen}
         onOpenChange={setFinalizarOpen}
         submitting={finalizarMut.isPending}
-        arrobasInformadaAtual={lote.arrobasPorMatrizInformada}
         onConfirm={(dados) => finalizarMut.mutate(dados)}
       />
 
-      {/* Remover matriz */}
       <AlertDialog
         open={!!confirmDeleteMat}
         onOpenChange={(o) => !o && setConfirmDeleteMat(null)}
@@ -509,16 +541,13 @@ function LoteDetalhePage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Excluir lote */}
-      <AlertDialog
-        open={confirmDeleteLote}
-        onOpenChange={setConfirmDeleteLote}
-      >
+      <AlertDialog open={confirmDeleteLote} onOpenChange={setConfirmDeleteLote}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir lote?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação remove o lote e todas as suas matrizes vinculadas. Não pode ser desfeita.
+              Esta ação remove o lote e todas as suas matrizes vinculadas. Não pode ser
+              desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -540,10 +569,63 @@ function LoteDetalhePage() {
 
 function Info({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div>
+    <div className="min-w-0">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+      <dd className="truncate font-medium">{value}</dd>
     </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-secondary/40 px-3 py-2">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-display text-lg font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function CampoTexto({
+  id,
+  value,
+  onSave,
+}: {
+  id: string;
+  value: string;
+  onSave: (v: string) => void;
+}) {
+  const [local, setLocal] = useState(value);
+  useEffect(() => setLocal(value), [value]);
+  return (
+    <Input
+      id={id}
+      value={local}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => local !== value && onSave(local)}
+    />
+  );
+}
+
+function CampoTextarea({
+  id,
+  value,
+  onSave,
+}: {
+  id: string;
+  value: string;
+  onSave: (v: string) => void;
+}) {
+  const [local, setLocal] = useState(value);
+  useEffect(() => setLocal(value), [value]);
+  return (
+    <Textarea
+      id={id}
+      rows={2}
+      value={local}
+      placeholder="Notas sobre o lote..."
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => local !== value && onSave(local)}
+    />
   );
 }
 
@@ -557,6 +639,9 @@ function PesoInput({
   onSave: (v: number | undefined) => void;
 }) {
   const [local, setLocal] = useState<string>(value !== undefined ? String(value) : "");
+  useEffect(() => {
+    setLocal(value !== undefined ? String(value) : "");
+  }, [value]);
   return (
     <Input
       type="number"
@@ -578,96 +663,131 @@ function PesoInput({
   );
 }
 
-function AddMatrizPopover({
+function AdicionarMatrizesDialog({
   open,
   onOpenChange,
   disponiveis,
-  onSelect,
+  salvando,
+  onConfirm,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  disponiveis: Array<{ id: string; numeroBrinco: string; proprietario: string }>;
-  onSelect: (id: string) => void;
+  disponiveis: Array<{
+    id: string;
+    numeroBrinco: string;
+    proprietario: keyof typeof PROPRIETARIO_LABEL;
+  }>;
+  salvando: boolean;
+  onConfirm: (ids: string[]) => void;
 }) {
+  const [busca, setBusca] = useState("");
+  const [sel, setSel] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setBusca("");
+      setSel([]);
+    }
+  }, [open]);
+
+  const filtradas = disponiveis.filter((m) =>
+    m.numeroBrinco.toLowerCase().includes(busca.trim().toLowerCase()),
+  );
+
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <Button size="sm" variant="outline" role="combobox" aria-expanded={open}>
-          <Plus className="mr-1 h-4 w-4" /> Adicionar matriz
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-0">
-        <Command
-          filter={(value, search) =>
-            value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-          }
-        >
-          <CommandInput placeholder="Digite o brinco..." />
-          <CommandList>
-            <CommandEmpty>Nenhuma matriz elegível.</CommandEmpty>
-            <CommandGroup>
-              {disponiveis.map((m) => (
-                <CommandItem
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Adicionar matrizes ao lote</DialogTitle>
+          <DialogDescription>
+            Selecione as matrizes ativas que irão para o confinamento.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Buscar por brinco..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+        <div className="max-h-72 overflow-y-auto rounded-md border border-border">
+          {filtradas.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Nenhuma matriz elegível encontrada.
+            </p>
+          ) : (
+            filtradas.map((m) => {
+              const marcada = sel.includes(m.id);
+              return (
+                <label
                   key={m.id}
-                  value={m.numeroBrinco}
-                  onSelect={() => onSelect(m.id)}
+                  className="flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2 last:border-0 hover:bg-secondary/50"
                 >
-                  <Check className={cn("mr-2 h-4 w-4 opacity-0")} />
+                  <Checkbox
+                    checked={marcada}
+                    onCheckedChange={(c) =>
+                      setSel((prev) =>
+                        c ? [...prev, m.id] : prev.filter((x) => x !== m.id),
+                      )
+                    }
+                  />
                   <span className="font-medium">Brinco {m.numeroBrinco}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {m.proprietario}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {PROPRIETARIO_LABEL[m.proprietario]}
                   </span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                </label>
+              );
+            })
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={() => onConfirm(sel)} disabled={sel.length === 0 || salvando}>
+            Adicionar {sel.length > 0 ? `(${sel.length})` : ""}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function FinalizarDialog({
+function FinalizarAlert({
   open,
   onOpenChange,
   submitting,
-  arrobasInformadaAtual,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   submitting: boolean;
-  arrobasInformadaAtual?: number;
   onConfirm: (dados: {
     dataEnvio: string;
     frigorifico?: string;
-    pesoTotalInformado?: number;
     valorRecebido?: number;
     arrobasPorMatrizInformada?: number;
   }) => void;
 }) {
-  const [dataEnvio, setDataEnvio] = useState(
-    toDateInput(new Date().toISOString()),
-  );
+  const [dataEnvio, setDataEnvio] = useState(toDateInput(new Date().toISOString()));
   const [frigorifico, setFrigorifico] = useState("");
-  const [peso, setPeso] = useState("");
   const [valor, setValor] = useState("");
-  const [arrobasInf, setArrobasInf] = useState(
-    arrobasInformadaAtual !== undefined ? String(arrobasInformadaAtual) : "",
-  );
+  const [arrobasInf, setArrobasInf] = useState("");
   const [erro, setErro] = useState<string | null>(null);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Finalizar lote e enviar ao frigorífico</DialogTitle>
-          <DialogDescription>
-            Ao finalizar, todas as matrizes do lote serão marcadas como descartadas e removidas das operações.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Finalizar lote e enviar ao frigorífico</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ao confirmar, todas as matrizes do lote serão marcadas como descartadas e o
+            lote não poderá mais ser editado.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="dataEnvio">
               Data de envio <span className="text-destructive">*</span>
@@ -689,36 +809,20 @@ function FinalizarDialog({
               placeholder="Nome do frigorífico"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="pesoInf">Peso informado (kg)</Label>
-              <Input
-                id="pesoInf"
-                type="number"
-                min="0"
-                step="1"
-                inputMode="numeric"
-                value={peso}
-                onChange={(e) => setPeso(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="valor">Valor recebido (R$)</Label>
-              <Input
-                id="valor"
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="valor">Valor recebido (R$)</Label>
+            <Input
+              id="valor"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="arrobasInf">
-              Média de arrobas por matriz informada pelo frigorífico (@)
-            </Label>
+            <Label htmlFor="arrobasInf">@/matriz informada pelo frigorífico</Label>
             <Input
               id="arrobasInf"
               type="number"
@@ -729,16 +833,11 @@ function FinalizarDialog({
               onChange={(e) => setArrobasInf(e.target.value)}
               placeholder="Ex.: 13,10"
             />
-            <p className="text-xs text-muted-foreground">
-              Informe a média já divulgada por animal. Não será dividida novamente pela quantidade de matrizes.
-            </p>
           </div>
-          {erro && <p className="text-xs text-destructive">{erro}</p>}
+          {erro && <p className="text-xs text-destructive sm:col-span-2">{erro}</p>}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancelar
-          </Button>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
           <Button
             onClick={() => {
               if (!dataEnvio) {
@@ -758,187 +857,16 @@ function FinalizarDialog({
               onConfirm({
                 dataEnvio: fromDateInput(dataEnvio),
                 frigorifico: frigorifico.trim() || undefined,
-                pesoTotalInformado: peso ? Number(peso) : undefined,
                 valorRecebido: valor ? Number(valor) : undefined,
                 arrobasPorMatrizInformada: arrobasNum,
               });
             }}
             disabled={submitting}
           >
-            {submitting ? "Finalizando..." : "Finalizar lote"}
+            {submitting ? "Finalizando..." : "Confirmar e finalizar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
-
-function IndicadoresCard({
-  titulo,
-  indicadores,
-  totalMatrizes,
-  parcial,
-  extras,
-}: {
-  titulo: string;
-  indicadores: IndicadoresPeso;
-  totalMatrizes: number;
-  parcial?: { faltam: number };
-  extras?: React.ReactNode;
-}) {
-  const { quantidade, pesoVivoTotal, pesoVivoMedio, pesoCarcaca, arrobasTotais, arrobasPorMatriz } = indicadores;
-  const vazio = quantidade === 0;
-  return (
-    <Card className="p-6 shadow-[var(--shadow-card)]">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold">{titulo}</h2>
-        {parcial && parcial.faltam > 0 && quantidade > 0 && (
-          <span className="text-xs text-muted-foreground">
-            Média calculada com {quantidade} de {totalMatrizes} matrizes pesadas
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-xs text-muted-foreground">{NOTA_ESTIMATIVA}</p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-        <Info label="Matrizes consideradas" value={quantidade} />
-        <Info label="Peso vivo total" value={vazio ? "—" : formatKg(pesoVivoTotal)} />
-        <Info label="Peso vivo médio por matriz" value={vazio ? "—" : formatKg(pesoVivoMedio)} />
-        <Info label="Peso estimado de carcaça" value={vazio ? "—" : formatKg(pesoCarcaca)} />
-        <Info label="Arrobas totais estimadas" value={vazio ? "—" : formatArrobas(arrobasTotais)} />
-        <Info
-          label="Média estimada de arrobas por matriz"
-          value={vazio ? "—" : formatArrobasPorMatriz(arrobasPorMatriz)}
-        />
-        {extras}
-      </dl>
-    </Card>
-  );
-}
-
-function ResultadoFrigorificoCard({
-  finalizado,
-  arrobasInformada,
-  mediaEstimadaFinal,
-  temPesoFinal,
-  comparativo,
-  onSalvar,
-  salvando,
-}: {
-  finalizado: boolean;
-  arrobasInformada?: number;
-  mediaEstimadaFinal: number;
-  temPesoFinal: boolean;
-  comparativo: ReturnType<typeof calcularComparativo>;
-  onSalvar: (v: number | undefined) => void;
-  salvando: boolean;
-}) {
-  const [local, setLocal] = useState<string>(
-    arrobasInformada !== undefined ? String(arrobasInformada) : "",
-  );
-  const [erroLocal, setErroLocal] = useState<string | null>(null);
-
-  const sinal =
-    comparativo && comparativo.diferencaArrobas > 0
-      ? "+"
-      : comparativo && comparativo.diferencaArrobas < 0
-        ? ""
-        : "";
-  const textoInterpretacao = (() => {
-    if (!comparativo) return null;
-    if (comparativo.diferencaArrobas > 0)
-      return "O frigorífico informou uma média inferior à estimada pelo sistema.";
-    if (comparativo.diferencaArrobas < 0)
-      return "O frigorífico informou uma média superior à estimada pelo sistema.";
-    return "Os valores são equivalentes.";
-  })();
-
-  return (
-    <Card className="p-6 shadow-[var(--shadow-card)]">
-      <h2 className="font-display text-lg font-semibold">Resultado do frigorífico</h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Informe a média de arrobas de carcaça por matriz divulgada pelo frigorífico para comparação.
-      </p>
-
-      {!finalizado ? (
-        <div className="mt-4 space-y-2 max-w-md">
-          <Label htmlFor="arrobasInfCampo">
-            Média de arrobas por matriz informada pelo frigorífico (@)
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="arrobasInfCampo"
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
-              value={local}
-              onChange={(e) => setLocal(e.target.value)}
-              placeholder="Ex.: 13,10"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={salvando}
-              onClick={() => {
-                if (local.trim() === "") {
-                  setErroLocal(null);
-                  onSalvar(undefined);
-                  return;
-                }
-                const n = Number(local.replace(",", "."));
-                if (!Number.isFinite(n) || n <= 0) {
-                  setErroLocal("Informe um valor maior que zero.");
-                  return;
-                }
-                setErroLocal(null);
-                onSalvar(n);
-              }}
-            >
-              Salvar
-            </Button>
-          </div>
-          {erroLocal && <p className="text-xs text-destructive">{erroLocal}</p>}
-        </div>
-      ) : null}
-
-      <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-        <Info
-          label="Média informada pelo frigorífico"
-          value={formatArrobasPorMatriz(arrobasInformada)}
-        />
-        <Info
-          label="Média final estimada pelo sistema"
-          value={temPesoFinal ? formatArrobasPorMatriz(mediaEstimadaFinal) : "—"}
-        />
-        {comparativo ? (
-          <>
-            <Info
-              label="Diferença em arrobas por matriz"
-              value={`${sinal}${formatArrobas(comparativo.diferencaArrobas)}`}
-            />
-            <Info
-              label="Diferença em carcaça por matriz"
-              value={`${sinal}${formatKg(comparativo.diferencaKgCarcaca)}`}
-            />
-            <Info
-              label="Diferença percentual"
-              value={`${sinal}${formatPercent(comparativo.diferencaPercentual)}`}
-            />
-            <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
-              {textoInterpretacao}
-            </div>
-          </>
-        ) : (
-          <div className="col-span-2 md:col-span-3 text-xs text-muted-foreground">
-            {arrobasInformada === undefined
-              ? "Informe a média do frigorífico para ver a comparação."
-              : !temPesoFinal
-                ? "Registre os pesos finais das matrizes para calcular a comparação."
-                : null}
-          </div>
-        )}
-      </dl>
-    </Card>
-  );
-}
-
