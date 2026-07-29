@@ -227,14 +227,27 @@ function LoteDetalhePage() {
 
   const indInicial = indicadoresIniciais(membros);
   const indFinal = indicadoresFinais(membros);
-  // Base de cálculo: peso final quando existir, senão peso inicial.
-  const usaFinal = indFinal.quantidade > 0;
-  const ind = usaFinal ? indFinal : indInicial;
+  const ganhoMedio =
+    indInicial.quantidade > 0 && indFinal.quantidade > 0
+      ? indFinal.pesoVivoMedio - indInicial.pesoVivoMedio
+      : undefined;
 
   const comparativo = calcularComparativo(
     indFinal.arrobasPorMatriz,
     lote.arrobasPorMatrizInformada ?? 0,
   );
+
+  const todosPesados =
+    membros.length > 0 &&
+    membros.every(
+      (m) =>
+        typeof m.pesoInicial === "number" &&
+        m.pesoInicial > 0 &&
+        typeof m.pesoFinal === "number" &&
+        m.pesoFinal > 0,
+    );
+  const semPesos = indInicial.quantidade === 0 && indFinal.quantidade === 0;
+
 
   return (
     <div className="space-y-5">
