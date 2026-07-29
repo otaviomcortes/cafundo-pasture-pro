@@ -569,12 +569,18 @@ function LoteDetalhePage() {
 
       {/* 3. Finalização */}
       {!finalizado && (
-        <div className="flex justify-end">
-          <Button onClick={() => setFinalizarOpen(true)} disabled={membros.length === 0}>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {!todosPesados && (
+            <p className="text-xs text-muted-foreground">
+              Informe o peso inicial e final de todas as matrizes para finalizar o lote.
+            </p>
+          )}
+          <Button onClick={() => setFinalizarOpen(true)} disabled={!todosPesados}>
             <PackageCheck className="mr-1 h-4 w-4" /> Finalizar lote
           </Button>
         </div>
       )}
+
 
       <AdicionarMatrizesDialog
         open={addOpen}
