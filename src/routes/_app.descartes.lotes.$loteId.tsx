@@ -885,7 +885,9 @@ function FinalizarAlert({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="frig">Frigorífico</Label>
+            <Label htmlFor="frig">
+              Frigorífico <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="frig"
               value={frigorifico}
@@ -894,7 +896,9 @@ function FinalizarAlert({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="valor">Valor recebido (R$)</Label>
+            <Label htmlFor="valor">
+              Valor recebido (R$) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="valor"
               type="number"
@@ -905,18 +909,28 @@ function FinalizarAlert({
               onChange={(e) => setValor(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="arrobasInf">@/matriz informada pelo frigorífico</Label>
-            <Input
-              id="arrobasInf"
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
-              value={arrobasInf}
-              onChange={(e) => setArrobasInf(e.target.value)}
-              placeholder="Ex.: 13,10"
-            />
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="arrobasInf">
+              Média de arrobas por matriz informada pelo frigorífico{" "}
+              <span className="text-destructive">*</span>
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="arrobasInf"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={arrobasInf}
+                onChange={(e) => setArrobasInf(e.target.value)}
+                placeholder="Ex.: 15,00"
+              />
+              <span className="shrink-0 text-sm text-muted-foreground">@ por matriz</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Informe a média de arrobas de carcaça divulgada pelo frigorífico para cada
+              matriz.
+            </p>
           </div>
           {erro && <p className="text-xs text-destructive sm:col-span-2">{erro}</p>}
         </div>
@@ -928,23 +942,33 @@ function FinalizarAlert({
                 setErro("Informe a data de envio.");
                 return;
               }
-              let arrobasNum: number | undefined;
-              if (arrobasInf.trim() !== "") {
-                const n = Number(arrobasInf.replace(",", "."));
-                if (!Number.isFinite(n) || n <= 0) {
-                  setErro("A média de arrobas informada deve ser maior que zero.");
-                  return;
-                }
-                arrobasNum = n;
+              if (!frigorifico.trim()) {
+                setErro("Informe o nome do frigorífico.");
+                return;
+              }
+              const valorNum = Number(valor.replace(",", "."));
+              if (valor.trim() === "" || !Number.isFinite(valorNum) || valorNum <= 0) {
+                setErro("Informe o valor recebido.");
+                return;
+              }
+              const arrobasNum = Number(arrobasInf.replace(",", "."));
+              if (
+                arrobasInf.trim() === "" ||
+                !Number.isFinite(arrobasNum) ||
+                arrobasNum <= 0
+              ) {
+                setErro("Informe a média de arrobas por matriz do frigorífico.");
+                return;
               }
               setErro(null);
               onConfirm({
                 dataEnvio: fromDateInput(dataEnvio),
-                frigorifico: frigorifico.trim() || undefined,
-                valorRecebido: valor ? Number(valor) : undefined,
+                frigorifico: frigorifico.trim(),
+                valorRecebido: valorNum,
                 arrobasPorMatrizInformada: arrobasNum,
               });
             }}
+
             disabled={submitting}
           >
             {submitting ? "Finalizando..." : "Confirmar e finalizar"}
