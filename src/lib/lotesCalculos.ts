@@ -93,28 +93,60 @@ export function formatPercent(value: number | undefined | null): string {
 }
 
 export interface ComparativoFrigorifico {
-  mediaSistema: number;
+  mediaFazenda: number;
   mediaFrigorifico: number;
+  /** frigorífico − fazenda */
   diferencaArrobas: number;
-  diferencaKgCarcaca: number;
   diferencaPercentual: number;
+  sentido: "acima" | "abaixo" | "equivalente";
 }
 
 export function calcularComparativo(
-  mediaSistema: number,
+  mediaFazenda: number,
   mediaFrigorifico: number,
 ): ComparativoFrigorifico | null {
-  if (!Number.isFinite(mediaSistema) || mediaSistema <= 0) return null;
+  if (!Number.isFinite(mediaFazenda) || mediaFazenda <= 0) return null;
   if (!Number.isFinite(mediaFrigorifico) || mediaFrigorifico <= 0) return null;
-  const diferencaArrobas = mediaSistema - mediaFrigorifico;
+  const diferencaArrobas = mediaFrigorifico - mediaFazenda;
+  const diferencaPercentual = (diferencaArrobas / mediaFazenda) * 100;
+  const arredondada = Number(diferencaArrobas.toFixed(2));
+  const sentido =
+    arredondada > 0 ? "acima" : arredondada < 0 ? "abaixo" : "equivalente";
   return {
-    mediaSistema,
+    mediaFazenda,
     mediaFrigorifico,
     diferencaArrobas,
-    diferencaKgCarcaca: diferencaArrobas * PESO_ARROBA_KG,
-    diferencaPercentual: (diferencaArrobas / mediaSistema) * 100,
+    diferencaPercentual,
+    sentido,
   };
+}
+
+/** Formata arrobas por matriz com sinal explícito (+/-). */
+export function formatArrobasComSinal(value: number): string {
+  const sinal = Number(value.toFixed(2)) > 0 ? "+" : "";
+  return `${sinal}${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} @/matriz`;
+}
+
+export function formatPercentComSinal(value: number): string {
+  const sinal = Number(value.toFixed(2)) > 0 ? "+" : "";
+  return `${sinal}${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`;
+}
+
+export function descricaoComparativo(c: ComparativoFrigorifico): string {
+  if (c.sentido === "equivalente") return "Resultado equivalente à estimativa da fazenda";
+  const pct = Math.abs(c.diferencaPercentual).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${pct}% ${c.sentido} da estimativa da fazenda`;
 }
 
 export const NOTA_ESTIMATIVA =
   "Estimativa calculada com rendimento de carcaça de 50% e arroba de 15 kg.";
+
