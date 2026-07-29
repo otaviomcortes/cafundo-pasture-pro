@@ -55,10 +55,11 @@ import {
   indicadoresIniciais,
   indicadoresFinais,
   calcularComparativo,
+  descricaoComparativo,
   formatKg,
   formatArrobasPorMatriz,
-  formatArrobas,
-  formatPercent,
+  formatArrobasComSinal,
+  formatPercentComSinal,
   NOTA_ESTIMATIVA,
 } from "@/lib/lotesCalculos";
 
