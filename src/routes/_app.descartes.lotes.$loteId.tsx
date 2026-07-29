@@ -338,44 +338,108 @@ function LoteDetalhePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 md:grid-cols-4">
-          <Metric label="Matrizes no lote" value={String(membros.length)} />
-          <Metric
-            label="Peso vivo total"
-            value={ind.quantidade ? formatKg(ind.pesoVivoTotal) : "—"}
-          />
-          <Metric
-            label="Peso vivo médio"
-            value={ind.quantidade ? formatKg(ind.pesoVivoMedio) : "—"}
-          />
-          <Metric
-            label="Média estimada @/matriz"
-            value={ind.quantidade ? formatArrobasPorMatriz(ind.arrobasPorMatriz) : "—"}
-          />
-          {finalizado && (
+        <div className="space-y-4 border-t border-border pt-4">
+          {semPesos ? (
+            <p className="text-sm text-muted-foreground">
+              Informe os pesos das matrizes para visualizar as médias do lote.
+            </p>
+          ) : (
             <>
-              <Metric
-                label="@/matriz informada"
-                value={formatArrobasPorMatriz(lote.arrobasPorMatrizInformada)}
-              />
-              <Metric
-                label="Diferença em arrobas"
-                value={comparativo ? formatArrobas(comparativo.diferencaArrobas) : "—"}
-              />
-              <Metric
-                label="Diferença percentual"
-                value={comparativo ? formatPercent(comparativo.diferencaPercentual) : "—"}
-              />
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Entrada no confinamento
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <Metric
+                    label="Peso inicial total"
+                    value={indInicial.quantidade ? formatKg(indInicial.pesoVivoTotal) : "—"}
+                  />
+                  <Metric
+                    label="Peso inicial médio"
+                    value={indInicial.quantidade ? formatKg(indInicial.pesoVivoMedio) : "—"}
+                  />
+                  <Metric
+                    label="Média estimada na entrada"
+                    value={
+                      indInicial.quantidade
+                        ? formatArrobasPorMatriz(indInicial.arrobasPorMatriz)
+                        : "—"
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Saída do confinamento
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <Metric
+                    label="Peso final total"
+                    value={indFinal.quantidade ? formatKg(indFinal.pesoVivoTotal) : "—"}
+                  />
+                  <Metric
+                    label="Peso final médio"
+                    value={indFinal.quantidade ? formatKg(indFinal.pesoVivoMedio) : "—"}
+                  />
+                  <Metric
+                    label="Média estimada na saída"
+                    value={
+                      indFinal.quantidade
+                        ? formatArrobasPorMatriz(indFinal.arrobasPorMatriz)
+                        : "—"
+                    }
+                  />
+                  <Metric
+                    label="Ganho médio por matriz"
+                    value={
+                      ganhoMedio === undefined
+                        ? "—"
+                        : `${ganhoMedio > 0 ? "+" : ""}${formatKg(ganhoMedio)}`
+                    }
+                  />
+                </div>
+              </div>
+
+              {finalizado && comparativo && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Comparação com o frigorífico
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <Metric
+                      label="Estimativa da fazenda"
+                      value={formatArrobasPorMatriz(comparativo.mediaFazenda)}
+                    />
+                    <Metric
+                      label="Informado pelo frigorífico"
+                      value={formatArrobasPorMatriz(comparativo.mediaFrigorifico)}
+                    />
+                    <Metric
+                      label="Diferença"
+                      value={formatArrobasComSinal(comparativo.diferencaArrobas)}
+                    />
+                    <Metric
+                      label="Diferença percentual"
+                      value={formatPercentComSinal(comparativo.diferencaPercentual)}
+                    />
+                  </div>
+                  <p className="mt-2 text-sm font-medium">
+                    {descricaoComparativo(comparativo)}
+                  </p>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                {NOTA_ESTIMATIVA}
+                {indFinal.quantidade > 0 && indFinal.quantidade < membros.length
+                  ? ` Média parcial calculada com ${indFinal.quantidade} de ${membros.length} matrizes pesadas.`
+                  : ""}
+              </p>
             </>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          {NOTA_ESTIMATIVA}
-          {ind.quantidade > 0 && ind.quantidade < membros.length
-            ? ` Calculado com ${ind.quantidade} de ${membros.length} matrizes pesadas.`
-            : ""}
-          {usaFinal ? " Base: pesos finais." : " Base: pesos iniciais."}
-        </p>
+
       </Card>
 
       {/* 2. Matrizes do lote */}
