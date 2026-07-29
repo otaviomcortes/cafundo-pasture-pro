@@ -151,11 +151,19 @@ function LoteDetalhePage() {
       campo: "pesoInicial" | "pesoFinal";
       valor: number | undefined;
     }) => loteMatrizService.atualizar(id, { [campo]: valor }),
+    onMutate: async ({ id, campo, valor }) => {
+      await qc.cancelQueries({ queryKey: ["loteMatrizes", loteId] });
+      qc.setQueryData<typeof membros>(["loteMatrizes", loteId], (prev) =>
+        (prev ?? []).map((lm) => (lm.id === id ? { ...lm, [campo]: valor } : lm)),
+      );
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["loteMatrizes", loteId] });
+      qc.invalidateQueries({ queryKey: ["loteMatrizes"], exact: true });
     },
     onError: () => toast.error("Não foi possível salvar o peso."),
   });
+
 
   const removerMatMut = useMutation({
     mutationFn: async (id: string) => loteMatrizService.remover(id),
